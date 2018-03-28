@@ -1,37 +1,46 @@
 """ Define the contents of graphic panel. """
 
+import math
+
+import numpy as np
+
+from PyQt5.QtCore import QPointF
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QFrame, QVBoxLayout
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QGroupBox
 from PyQt5.QtChart import QChart, QChartView, QLineSeries
+
 
 class GraphicFrame(QFrame):
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super().__init__()
+        self.__layout = QVBoxLayout()
+        self.setLayout(self.__layout)
+        self.__layout.setContentsMargins(0, 0, 0, 0)
 
-        layout = QVBoxLayout(self)
-
+        mu, sig = 0, 3
         series = QLineSeries()
 
-        series.append(0, 6)
-        series.append(2, 7)
-        series.append(3, 5)
-        series.append(7, 3)
-        series.append(9, 0)
-        series.append(50, 8)
-        series.append(13, 7)
-        series.append(-1, 5)
+        series.append([QPointF(x, gaussian(x, mu, sig)) for x in np.linspace(mu - 4 * sig, mu + 4 * sig, 200)])
 
         chart = QChart()
         chart.legend().hide()
         chart.addSeries(series)
         chart.createDefaultAxes()
+        chart.setMinimumWidth(500)
+        chart.setMaximumHeight(500)
 
         chart_view = QChartView(chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
-        chart_view.setMinimumSize(400, 400)
+        chart_view.setStatusTip("Shows the simulation of fuzzy-automated car.")
 
-        layout.addWidget(chart_view)
-        layout.setContentsMargins(0, 0, 0, 0)
+        self.__layout.addWidget(chart_view)
 
-        self.setLayout(layout)
+        self.setVariableDisplay()
+
+    def setVariableDisplay(self):
+        group_box = QGroupBox("Monitor")
+        self.__layout.addWidget(group_box)
+
+def gaussian(x, mu, sig):
+    return math.exp(-(x - mu)**2 / sig**2)
