@@ -25,7 +25,6 @@ class FuzzierViewer(QFrame):
         self.chart.layout().setContentsMargins(0, 0, 0, 0)
         self.chart.setMargins(QMargins())
         self.chart.setBackgroundRoundness(0)
-        #self.chart.removeAxis(self.chart.axisY())
         self.chart.setMinimumHeight(55)
 
         chart_view = QChartView(self.chart)

@@ -5,35 +5,45 @@ from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QGridLayout,
                              QLabel, QLineEdit, QRadioButton,
                              QTextEdit)
 
+from display_panel import DisplayFrame
 from fuzzier_viewer import FuzzierViewer
 
 
 class ControlFrame(QFrame):
 
-    def __init__(self):
+    def __init__(self, dataset, display_panel):
         super().__init__()
+        if isinstance(display_panel, DisplayFrame):
+            self.display_panel = display_panel
+        else:
+            raise TypeError("'display_panel' must be the instance of "
+                            "'DisplayFrame'")
+        self.dataset = dataset
+
         self.__layout = QVBoxLayout()
         self.setLayout(self.__layout)
         self.__layout.setContentsMargins(0, 0, 0, 0)
 
-        self.setCaseComboboxUI()
-        self.setFuzzySetOperationTypeUI()
-        self.setFuzzyVariableUI()
-        self.setConsoleDisplay()
+        self.__setCaseComboboxUI()
+        self.__setFuzzySetOperationTypeUI()
+        self.__setFuzzyVariableUI()
+        self.__setConsoleUI()
 
-    def setCaseComboboxUI(self):
+    def __setCaseComboboxUI(self):
         group_box = QGroupBox("Case Data Selection")
         inner_layout = QGridLayout()
         group_box.setLayout(inner_layout)
 
         self.data_selector = QComboBox(group_box)
-        self.data_selector.addItems(["pseudocase0", "pseudocase"])
+        self.data_selector.addItems(self.dataset.keys())
         self.data_selector.setStatusTip("Select the road map data.")
+        self.data_selector.currentIndexChanged.connect(self.paint_map)
+        self.paint_map()
         inner_layout.addWidget(self.data_selector)
 
         self.__layout.addWidget(group_box)
 
-    def setFuzzySetOperationTypeUI(self):
+    def __setFuzzySetOperationTypeUI(self):
         group_box = QGroupBox("Fuzzy Sets Operation Types")
         inner_layout = QFormLayout()
         group_box.setLayout(inner_layout)
@@ -99,16 +109,19 @@ class ControlFrame(QFrame):
 
         self.__layout.addWidget(group_box)
 
-    def setFuzzyVariableUI(self):
+    def __setFuzzyVariableUI(self):
         self.in_fuzzyvar_setting = FuzzierVarSetting("Input Fuzzy Variables")
         self.out_fuzzyvar_setting = FuzzierVarSetting("Output Fuzzy Varaibles")
         self.__layout.addWidget(self.in_fuzzyvar_setting)
         self.__layout.addWidget(self.out_fuzzyvar_setting)
 
-    def setConsoleDisplay(self):
+    def __setConsoleUI(self):
         self.console = QTextEdit()
         self.console.setReadOnly(True)
         self.__layout.addWidget(self.console)
+
+    def paint_map(self):
+        self.display_panel.paint_map(self.dataset[self.data_selector.currentText()])
 
 class RadioButtonSet(QFrame):
     def __init__(self, named_radiobtns):
@@ -120,6 +133,7 @@ class RadioButtonSet(QFrame):
         next(iter(self.named_radiobtns.values())).toggle()
         for radiobtn in self.named_radiobtns.values():
             layout.addWidget(radiobtn)
+
 
 class FuzzierVarSetting(QGroupBox):
     def __init__(self, name):
@@ -138,6 +152,10 @@ class FuzzierVarSetting(QGroupBox):
         self.viewer = FuzzierViewer()
 
         self.__layout.addRow(self.viewer)
+
+        self.small.mean.setValue(0)
+        self.medium.mean.setValue(5)
+        self.large.mean.setValue(10)
 
         self.update_viewer()
 
@@ -158,6 +176,7 @@ class FuzzierVarSetting(QGroupBox):
         self.viewer.remove_curves()
         self.viewer.add_curves(means, sds)
 
+
 class GaussianFuzzierSetting(QFrame):
     def __init__(self):
         super().__init__()
@@ -169,8 +188,8 @@ class GaussianFuzzierSetting(QFrame):
         self.mean.setStatusTip("The mean (mu) value for Gaussian function.")
         self.sd = QDoubleSpinBox()
         self.sd.setDecimals(3)
-        self.sd.setValue(1)
-        self.sd.setMinimum(0.001)
+        self.sd.setValue(2)
+        self.sd.setMinimum(0.01)
         self.sd.setStatusTip("The standard deviation (sigma) value for "
                              "Gaussian function.")
         layout.addWidget(QLabel("Mean"))

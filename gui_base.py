@@ -5,26 +5,26 @@ Define the GUI: main window.
 
 from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 
-import control_panel
-import graphic_panel
+from control_panel import ControlFrame
+from display_panel import DisplayFrame
 
 class GUIBase(QMainWindow):
     """ The base of GUI, containing the status bar and menu. """
 
-    def __init__(self):
+    def __init__(self, dataset):
         super().__init__()
         self.setWindowTitle("Fuzzy Car")
         self.statusBar()
-        self.setCentralWidget(BaseWidget())
+        self.setCentralWidget(BaseWidget(dataset))
 
 class BaseWidget(QWidget):
 
-    def __init__(self):
+    def __init__(self, dataset):
         super().__init__()
         layout = QHBoxLayout()
-        ctrl_panel = control_panel.ControlFrame()
+        disp_panel = DisplayFrame()
+        ctrl_panel = ControlFrame(dataset, disp_panel)
         layout.addWidget(ctrl_panel)
-        gr_panel = graphic_panel.GraphicFrame()
-        layout.addWidget(gr_panel)
+        layout.addWidget(disp_panel)
 
         self.setLayout(layout)
