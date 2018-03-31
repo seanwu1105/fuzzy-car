@@ -1,9 +1,9 @@
 """ Define the contents of control panel. """
 
-from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QGridLayout,
-                             QFormLayout, QComboBox, QDoubleSpinBox, QGroupBox,
-                             QLabel, QLineEdit, QRadioButton,
-                             QTextEdit)
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
+                             QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
+                             QLabel, QRadioButton, QTextEdit, QCheckBox)
 
 from display_panel import DisplayFrame
 from fuzzier_viewer import FuzzierViewer
@@ -31,15 +31,24 @@ class ControlFrame(QFrame):
 
     def __setCaseComboboxUI(self):
         group_box = QGroupBox("Case Data Selection")
-        inner_layout = QGridLayout()
+        inner_layout = QHBoxLayout()
         group_box.setLayout(inner_layout)
 
         self.data_selector = QComboBox(group_box)
         self.data_selector.addItems(self.dataset.keys())
-        self.data_selector.setStatusTip("Select the road map data.")
-        self.data_selector.currentIndexChanged.connect(self.paint_map)
-        self.paint_map()
-        inner_layout.addWidget(self.data_selector)
+        self.data_selector.setStatusTip("Select the road map case.")
+        self.data_selector.currentIndexChanged.connect(self.change_map)
+
+        self.start_btn = QPushButton("Run")
+        self.start_btn.setStatusTip("Run the car.")
+
+        self.stop_btn = QPushButton("Stop")
+        self.stop_btn.setStatusTip("Force the simulation stop running.")
+
+        self.change_map()
+        inner_layout.addWidget(self.data_selector, 1)
+        inner_layout.addWidget(self.start_btn)
+        inner_layout.addWidget(self.stop_btn)
 
         self.__layout.addWidget(group_box)
 
@@ -118,10 +127,13 @@ class ControlFrame(QFrame):
     def __setConsoleUI(self):
         self.console = QTextEdit()
         self.console.setReadOnly(True)
+        self.console.setStatusTip("Show the logs of status changing.")
         self.__layout.addWidget(self.console)
 
-    def paint_map(self):
-        self.display_panel.paint_map(self.dataset[self.data_selector.currentText()])
+    def change_map(self):
+        self.display_panel.change_map(
+            self.dataset[self.data_selector.currentText()])
+
 
 class RadioButtonSet(QFrame):
     def __init__(self, named_radiobtns):
@@ -161,10 +173,16 @@ class FuzzierVarSetting(QGroupBox):
 
         self.small.mean.valueChanged.connect(self.update_viewer)
         self.small.sd.valueChanged.connect(self.update_viewer)
+        self.small.ascending.stateChanged.connect(self.update_viewer)
+        self.small.descending.stateChanged.connect(self.update_viewer)
         self.medium.mean.valueChanged.connect(self.update_viewer)
         self.medium.sd.valueChanged.connect(self.update_viewer)
+        self.medium.ascending.stateChanged.connect(self.update_viewer)
+        self.medium.descending.stateChanged.connect(self.update_viewer)
         self.large.mean.valueChanged.connect(self.update_viewer)
         self.large.sd.valueChanged.connect(self.update_viewer)
+        self.large.ascending.stateChanged.connect(self.update_viewer)
+        self.large.descending.stateChanged.connect(self.update_viewer)
 
     def update_viewer(self):
         means = [self.small.mean.value(),
@@ -173,26 +191,42 @@ class FuzzierVarSetting(QGroupBox):
         sds = [self.small.sd.value(),
                self.medium.sd.value(),
                self.large.sd.value()]
+        ascendings = [self.small.ascending.isChecked(),
+                      self.medium.ascending.isChecked(),
+                      self.large.ascending.isChecked()]
+        descendings = [self.small.descending.isChecked(),
+                       self.medium.descending.isChecked(),
+                       self.large.descending.isChecked()]
         self.viewer.remove_curves()
-        self.viewer.add_curves(means, sds)
+        self.viewer.add_curves(means, sds, ascendings, descendings)
 
 
 class GaussianFuzzierSetting(QFrame):
     def __init__(self):
         super().__init__()
         layout = QHBoxLayout()
+
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.mean = QDoubleSpinBox()
         self.mean.setMinimum(-100)
         self.mean.setStatusTip("The mean (mu) value for Gaussian function.")
+
         self.sd = QDoubleSpinBox()
         self.sd.setDecimals(3)
         self.sd.setValue(2)
-        self.sd.setMinimum(0.01)
+        self.sd.setMinimum(0.1)
         self.sd.setStatusTip("The standard deviation (sigma) value for "
                              "Gaussian function.")
+
+        self.ascending = QCheckBox()
+        self.ascending.setIcon(QIcon('icons/Arrow_top.png'))
+        self.descending = QCheckBox()
+        self.descending.setIcon(QIcon('icons/Arrow_top.png'))
+
         layout.addWidget(QLabel("Mean"))
-        layout.addWidget(self.mean)
+        layout.addWidget(self.mean, 1)
         layout.addWidget(QLabel("Standard Deviation"))
-        layout.addWidget(self.sd)
+        layout.addWidget(self.sd, 1)
+        layout.addWidget(self.ascending)
+        layout.addWidget(self.descending)

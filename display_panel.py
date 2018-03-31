@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QFormLayout, QVBoxLayout, QGroupBox,
                              QFrame, QLabel, QSizePolicy)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle, Rectangle
 
 
 class DisplayFrame(QFrame):
@@ -22,6 +22,8 @@ class DisplayFrame(QFrame):
 
     def __setGraphicUI(self):
         self.simulator = CarPlot()
+        self.simulator.setStatusTip("Show the graphic of the car controled by "
+                                    "fuzzy system in mazz.")
         self.__layout.addWidget(self.simulator)
 
     def __setVariableDisplayUI(self):
@@ -44,18 +46,30 @@ class DisplayFrame(QFrame):
         self.dist_left.setAlignment(Qt.AlignCenter)
         self.dist_right.setAlignment(Qt.AlignCenter)
 
+        self.car_angle_label = QLabel("Car Angle:")
+        self.wheel_angle_label = QLabel("Wheel Angle:")
+        self.car_angle_label.setStatusTip("The angle (degree) of car between "
+                                          "x-axis.")
+        self.wheel_angle_label.setStatusTip("The angle (degree) of the wheel "
+                                            "of car between x-axis, which "
+                                            "will determine the next position "
+                                            "of the car.")
+
         inner_layout.addRow(QLabel("Car Position:"), self.car_position)
-        inner_layout.addRow(QLabel("Car Angle:"), self.car_angle)
-        inner_layout.addRow(QLabel("Wheel Angle:"), self.wheel_angle)
+        inner_layout.addRow(self.car_angle_label, self.car_angle)
+        inner_layout.addRow(self.wheel_angle_label, self.wheel_angle)
         inner_layout.addRow(QLabel("Front Distance:"), self.dist_front)
         inner_layout.addRow(QLabel("Left Distance:"), self.dist_left)
         inner_layout.addRow(QLabel("Right Distance:"), self.dist_right)
 
-    def paint_map(self, data):
+    def change_map(self, data):
         self.simulator.paint_map(data)
+        self.move_car(data['start_pos'], data['start_angle'])
 
-    def paint_car(self, pos, angle):
+    def move_car(self, pos, angle):
         self.simulator.paint_car(pos, angle)
+        self.car_position.setText("({}, {})".format(*pos))
+        self.car_angle.setText(str(angle))
 
 
 class CarPlot(FigureCanvas):
@@ -79,8 +93,12 @@ class CarPlot(FigureCanvas):
 
     def paint_map(self, data):
         self.axes.cla()
-        self.axes.plot(*zip(*data['route_edge']), color='saddlebrown')
-        self.paint_car(data['start_pos'], data['start_angle'])
+        self.axes.plot(*zip(*data['route_edge']), color='darkslategray')
+        self.axes.add_artist(Rectangle(
+            (data['end_area_lt'][0], data['end_area_rb'][1]),
+            data['end_area_rb'][0] - data['end_area_lt'][0],
+            data['end_area_lt'][1] - data['end_area_rb'][1],
+            color='greenyellow'))
 
     def paint_car(self, pos, angle):
         try:
@@ -97,5 +115,7 @@ class CarPlot(FigureCanvas):
                                            arrow_len * math.cos(angle),
                                            arrow_len * math.sin(angle),
                                            head_width=2,
-                                           length_includes_head=True)
+                                           length_includes_head=True,
+                                           fc='seagreen',
+                                           ec='darkslategray')
         self.draw()

@@ -39,8 +39,8 @@ def read_case_file(folderpath='data'):
         dataset[filepath.stem] = {
             "start_pos": (contents[0][0], contents[0][1]),
             "start_angle": contents[0][2],
-            "end_area_left_top": contents[1],
-            "end_area_right_bottom": contents[2],
+            "end_area_lt": contents[1],  # ending area - left-top
+            "end_area_rb": contents[2],  # ending area - right-bottom
             "route_edge": contents[3:]
         }
     return dataset

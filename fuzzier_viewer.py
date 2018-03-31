@@ -14,11 +14,6 @@ class FuzzierViewer(QFrame):
         self.setLayout(layout)
         self.setStatusTip("Display the fuzziers in plot.")
 
-        self.max_realm = 0
-        self.min_realm = 0
-        self.means = None
-        self.sds = None
-
         self.chart = QChart()
         self.chart.legend().hide()
         self.chart.createDefaultAxes()
@@ -33,22 +28,33 @@ class FuzzierViewer(QFrame):
         layout.addWidget(chart_view)
         layout.setContentsMargins(0, 0, 0, 0)
 
-    def add_curves(self, means, sds):
-        self.means, self.sds = means, sds
-        self.max_realm = max(means) + 4 * sds[means.index(max(means))]
-        self.min_realm = min(means) - 4 * sds[means.index(min(means))]
-        series_list = [QLineSeries() for _ in range(len(self.means))]
-        for curve in zip(series_list, self.means, self.sds):
-            curve[0].append([QPointF(x, gaussian(x, curve[1], curve[2]))
-                             for x in np.linspace(self.min_realm,
-                                                  self.max_realm,
-                                                  200)])
-            self.chart.addSeries(curve[0])
+    def add_curves(self, means, sds, ascendings, descendings):
+        self.__xmax = max(means) + 4 * sds[means.index(max(means))]
+        self.__xmin = min(means) - 4 * sds[means.index(min(means))]
+        series_list = [QLineSeries() for _ in range(len(means))]
+        for idx, param in enumerate(zip(means, sds, ascendings, descendings)):
+            series_list[idx].append(self.__generate_curve(*param))
+            self.chart.addSeries(series_list[idx])
         self.chart.createDefaultAxes()
         self.chart.removeAxis(self.chart.axisY())
 
     def remove_curves(self):
         self.chart.removeAllSeries()
+
+    def __generate_curve(self, mean, sd, ascending, descending):
+        if ascending and descending:
+            return [QPointF(x, 0) for x in np.linspace(self.__xmin,
+                                                       self.__xmax,
+                                                       10)]
+        points = list()
+        for x in np.linspace(self.__xmin, self.__xmax, 400):
+            if ascending and x > mean:
+                points.append(QPointF(x, 1))
+            elif descending and x < mean:
+                points.append(QPointF(x, 1))
+            else:
+                points.append(QPointF(x, gaussian(x, mean, sd)))
+        return points
 
 
 def gaussian(var, mean, sig):
