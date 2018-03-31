@@ -220,9 +220,11 @@ class GaussianFuzzierSetting(QFrame):
                              "Gaussian function.")
 
         self.ascending = QCheckBox()
-        self.ascending.setIcon(QIcon('icons/Arrow_top.png'))
+        self.ascending.setIcon(QIcon('icons/ascending_icon.png'))
+        self.ascending.setStatusTip("Make the fuzzier strictly ascending.")
         self.descending = QCheckBox()
-        self.descending.setIcon(QIcon('icons/Arrow_top.png'))
+        self.descending.setIcon(QIcon('icons/descending_icon.png'))
+        self.descending.setStatusTip("Make the fuzzier strictly descending.")
 
         layout.addWidget(QLabel("Mean"))
         layout.addWidget(self.mean, 1)
