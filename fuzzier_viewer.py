@@ -3,7 +3,7 @@ import math
 import numpy as np
 from PyQt5.QtCore import QPointF, QMargins
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QSizePolicy
+from PyQt5.QtWidgets import QFrame, QHBoxLayout
 from PyQt5.QtChart import QChart, QChartView, QLineSeries
 
 
