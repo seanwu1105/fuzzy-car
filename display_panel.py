@@ -71,6 +71,6 @@ class DisplayFrame(QFrame):
         self.car_position.setText("({}, {})".format(*pos))
         self.car_angle.setText(str(angle))
 
-    @pyqtSlot(list)
-    def show_dists(self, dists):
-        pass
+    @pyqtSlot(tuple, list)
+    def show_dists(self, pos, intersections):
+        self.simulator.paint_dist(pos, intersections)

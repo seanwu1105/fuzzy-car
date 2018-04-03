@@ -7,7 +7,7 @@ class RunCar(QThread):
 
     sig_console = pyqtSignal(str)
     sig_car = pyqtSignal(tuple, float)
-    sig_dists = pyqtSignal(list)
+    sig_dists = pyqtSignal(tuple, list)
 
     def __init__(self, car):
         super().__init__()
@@ -16,11 +16,12 @@ class RunCar(QThread):
 
     @pyqtSlot()
     def run(self):
-        for i in range(10):
+        for i in range(5):
             time.sleep(0.25)
-            self.sig_console.emit(str(i))
+            self.sig_dists.emit((0, 0), [(x * 2, x ** 2) for x in range(i, i + 3)])
 
     def stop(self):
         if self.is_alive():
             self.sig_console.emit("WARNING: User interrupts running thread.")
+
         self.abort = False

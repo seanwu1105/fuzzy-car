@@ -5,7 +5,6 @@ class Car(object):
         self.radius = radius
         self.walls = walls
         self.wheel_angle = 0
-        print(self.walls)
 
     def move(self):
         pass

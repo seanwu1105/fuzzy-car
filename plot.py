@@ -2,6 +2,7 @@ import math
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, Rectangle
 
 from PyQt5.QtWidgets import QSizePolicy
@@ -25,6 +26,7 @@ class CarPlot(FigureCanvas):
 
         self.__car = None
         self.__direction = None
+        self.__dists = []
 
     def paint_map(self, data):
         self.axes.cla()
@@ -53,4 +55,18 @@ class CarPlot(FigureCanvas):
                                            length_includes_head=True,
                                            fc='seagreen',
                                            ec='darkslategray')
+        self.draw()
+
+    def paint_dist(self, pos, intersections):
+        for dist in self.__dists:
+            try:
+                dist.remove()
+            except ValueError:
+                pass
+
+        self.__dists = [Line2D(*zip(pos, i),
+                               linestyle=':',
+                               color='grey') for i in intersections]
+        for dist in self.__dists:
+            self.axes.add_line(dist)
         self.draw()
