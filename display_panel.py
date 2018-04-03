@@ -1,7 +1,7 @@
 """ Define the contents of graphic panel. """
 
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWidgets import (QFormLayout, QVBoxLayout, QGroupBox,
                              QFrame, QLabel)
 
@@ -60,11 +60,17 @@ class DisplayFrame(QFrame):
         inner_layout.addRow(QLabel("Left Distance:"), self.dist_left)
         inner_layout.addRow(QLabel("Right Distance:"), self.dist_right)
 
+    @pyqtSlot(dict)
     def change_map(self, data):
         self.simulator.paint_map(data)
         self.move_car(data['start_pos'], data['start_angle'])
 
+    @pyqtSlot(tuple, float)
     def move_car(self, pos, angle):
         self.simulator.paint_car(pos, angle)
         self.car_position.setText("({}, {})".format(*pos))
         self.car_angle.setText(str(angle))
+
+    @pyqtSlot(list)
+    def show_dists(self, dists):
+        pass

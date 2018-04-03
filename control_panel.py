@@ -1,5 +1,6 @@
 """ Define the contents of control panel. """
 
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                              QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
@@ -7,6 +8,8 @@ from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
 
 from display_panel import DisplayFrame
 from fuzzier_viewer import FuzzierViewer
+from car import Car
+from run import RunCar
 
 
 class ControlFrame(QFrame):
@@ -19,6 +22,9 @@ class ControlFrame(QFrame):
             raise TypeError("'display_panel' must be the instance of "
                             "'DisplayFrame'")
         self.dataset = dataset
+
+        self.__car = None
+        self.__thread = None
 
         self.__layout = QVBoxLayout()
         self.setLayout(self.__layout)
@@ -37,15 +43,17 @@ class ControlFrame(QFrame):
         self.data_selector = QComboBox(group_box)
         self.data_selector.addItems(self.dataset.keys())
         self.data_selector.setStatusTip("Select the road map case.")
-        self.data_selector.currentIndexChanged.connect(self.change_map)
+        self.data_selector.currentIndexChanged.connect(self.__change_map)
 
         self.start_btn = QPushButton("Run")
         self.start_btn.setStatusTip("Run the car.")
+        self.start_btn.clicked.connect(self.__run)
 
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setStatusTip("Force the simulation stop running.")
+        self.stop_btn.setDisabled(True)
 
-        self.change_map()
+        self.__change_map()
         inner_layout.addWidget(self.data_selector, 1)
         inner_layout.addWidget(self.start_btn)
         inner_layout.addWidget(self.stop_btn)
@@ -125,15 +133,43 @@ class ControlFrame(QFrame):
         self.__layout.addWidget(self.out_fuzzyvar_setting)
 
     def __setConsoleUI(self):
-        self.console = QTextEdit()
-        self.console.setReadOnly(True)
-        self.console.setStatusTip("Show the logs of status changing.")
-        self.__layout.addWidget(self.console)
+        self.__console = QTextEdit()
+        self.__console.setReadOnly(True)
+        self.__console.setStatusTip("Show the logs of status changing.")
+        self.__layout.addWidget(self.__console)
 
-    def change_map(self):
-        self.display_panel.change_map(
-            self.dataset[self.data_selector.currentText()])
+    @pyqtSlot()
+    def __change_map(self):
+        current_data = self.dataset[self.data_selector.currentText()]
+        self.__car = Car(current_data['start_pos'],
+                         current_data['start_angle'],
+                         3,
+                         current_data['route_edge'])
+        self.display_panel.change_map(current_data)
 
+    @pyqtSlot(str)
+    def __print_console(self, text):
+        self.__console.append(text)
+
+    @pyqtSlot()
+    def __init_widgets(self):
+        self.start_btn.setDisabled(True)
+        self.stop_btn.setEnabled(True)
+
+    @pyqtSlot()
+    def __reset_widgets(self):
+        self.start_btn.setEnabled(True)
+        self.stop_btn.setDisabled(True)
+
+    @pyqtSlot()
+    def __run(self):
+        self.__thread = RunCar(self.__car)
+        self.__thread.started.connect(self.__init_widgets)
+        self.__thread.finished.connect(self.__reset_widgets)
+        self.__thread.sig_console.connect(self.__print_console)
+        self.__thread.sig_car.connect(self.display_panel.move_car)
+        self.__thread.sig_dists.connect(self.display_panel.show_dists)
+        self.__thread.start()
 
 class RadioButtonSet(QFrame):
     def __init__(self, named_radiobtns):
@@ -184,6 +220,7 @@ class FuzzierVarSetting(QGroupBox):
         self.large.ascending.stateChanged.connect(self.update_viewer)
         self.large.descending.stateChanged.connect(self.update_viewer)
 
+    @pyqtSlot()
     def update_viewer(self):
         means = [self.small.mean.value(),
                  self.medium.mean.value(),
