@@ -155,11 +155,27 @@ class ControlFrame(QFrame):
     def __init_widgets(self):
         self.start_btn.setDisabled(True)
         self.stop_btn.setEnabled(True)
+        self.data_selector.setDisabled(True)
+        self.composition_tnorm_selection.setDisabled(True)
+        self.composition_tconorm_selection.setDisabled(True)
+        self.implication_selections.setDisabled(True)
+        self.vars_combine_selection.setDisabled(True)
+        self.rules_combine_selection.setDisabled(True)
+        self.in_fuzzyvar_setting.setDisabled(True)
+        self.out_fuzzyvar_setting.setDisabled(True)
 
     @pyqtSlot()
     def __reset_widgets(self):
         self.start_btn.setEnabled(True)
         self.stop_btn.setDisabled(True)
+        self.data_selector.setEnabled(True)
+        self.composition_tnorm_selection.setEnabled(True)
+        self.composition_tconorm_selection.setEnabled(True)
+        self.implication_selections.setEnabled(True)
+        self.vars_combine_selection.setEnabled(True)
+        self.rules_combine_selection.setEnabled(True)
+        self.in_fuzzyvar_setting.setEnabled(True)
+        self.out_fuzzyvar_setting.setEnabled(True)
 
     @pyqtSlot()
     def __run(self):
@@ -219,6 +235,16 @@ class FuzzierVarSetting(QGroupBox):
         self.large.sd.valueChanged.connect(self.update_viewer)
         self.large.ascending.stateChanged.connect(self.update_viewer)
         self.large.descending.stateChanged.connect(self.update_viewer)
+
+    def setDisabled(self, boolean):
+        self.small.setDisabled(boolean)
+        self.medium.setDisabled(boolean)
+        self.large.setDisabled(boolean)
+
+    def setEnabled(self, boolean):
+        self.small.setEnabled(boolean)
+        self.medium.setEnabled(boolean)
+        self.large.setEnabled(boolean)
 
     @pyqtSlot()
     def update_viewer(self):
