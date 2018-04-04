@@ -49,7 +49,7 @@ class Line2D(object):
     def x(self, y):
         return 0 if self.x_coef == 0 else (self.const - self.y_coef * y) / self.x_coef
 
-    def intersections(self, line):
+    def intersection(self, line):
         """Get the point of intersection between two lines. May loss precision while
         calculating the result from `Decimal` to `float`.
 
@@ -97,8 +97,8 @@ class LineSeg2D(Line2D):
         self.xmax, self.xmin = max(arg1[0], arg2[0]), min(arg1[0], arg2[0])
         self.ymax, self.ymin = max(arg1[1], arg2[1]), min(arg1[1], arg2[1])
 
-    def intersections(self, line):
-        inter = super().intersections(line)
+    def intersection(self, line):
+        inter = super().intersection(line)
         if inter is None:
             return None
         if type(line) == Line2D:
@@ -106,7 +106,7 @@ class LineSeg2D(Line2D):
                     and self.ymin <= inter[1] <= self.ymax):
                 # vertical line segment
                 return inter
-            elif self.xmin <= inter[0] <= self.xmax[0]:
+            elif self.xmin <= inter[0] <= self.xmax:
                 # oblique line
                 return inter
             else:
@@ -130,4 +130,3 @@ class LineSeg2D(Line2D):
         else:
             raise TypeError("'line' should be a instance of Line2D or "
                             "LineSeg2D")
-

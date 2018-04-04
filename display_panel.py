@@ -64,13 +64,18 @@ class DisplayFrame(QFrame):
     def change_map(self, data):
         self.simulator.paint_map(data)
         self.move_car(data['start_pos'], data['start_angle'])
+        self.show_dists(data['start_pos'], ['--'] * 3, [data['start_pos']] * 3)
 
-    @pyqtSlot(tuple, float)
-    def move_car(self, pos, angle):
+    @pyqtSlot(tuple, float, float)
+    def move_car(self, pos, angle, wheel_angle=0):
         self.simulator.paint_car(pos, angle)
         self.car_position.setText("({}, {})".format(*pos))
         self.car_angle.setText(str(angle))
+        self.wheel_angle.setText(str(wheel_angle))
 
-    @pyqtSlot(tuple, list)
-    def show_dists(self, pos, intersections):
+    @pyqtSlot(tuple, list, list)
+    def show_dists(self, pos, dists, intersections):
         self.simulator.paint_dist(pos, intersections)
+        self.dist_front.setText(str(dists[0]))
+        self.dist_left.setText(str(dists[1]))
+        self.dist_right.setText(str(dists[2]))
