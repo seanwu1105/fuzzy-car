@@ -1,10 +1,11 @@
 """ Define the contents of control panel. """
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                              QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
-                             QLabel, QRadioButton, QTextEdit, QCheckBox)
+                             QLabel, QRadioButton, QTextEdit, QCheckBox,
+                             QStackedWidget)
 
 from display_panel import DisplayFrame
 from fuzzier_viewer import FuzzierViewer
@@ -127,16 +128,50 @@ class ControlFrame(QFrame):
         self.__layout.addWidget(group_box)
 
     def __setFuzzyVariableUI(self):
-        self.in_fuzzyvar_setting = FuzzierVarSetting("Input Fuzzy Variables")
-        self.out_fuzzyvar_setting = FuzzierVarSetting("Output Fuzzy Varaibles")
-        self.__layout.addWidget(self.in_fuzzyvar_setting)
-        self.__layout.addWidget(self.out_fuzzyvar_setting)
+        group_box = QGroupBox("Fuzzy Variables Settings")
+        inner_layout = QVBoxLayout()
+        self.fuzzyvar_setting_stack = QStackedWidget()
+        self.fuzzyvar_ui_selection = RadioButtonSet({
+            "front": QRadioButton("Front Distance Radar"),
+            "left": QRadioButton("Left Distance Radar"),
+            "right": QRadioButton("Right Distance Radar"),
+            "output": QRadioButton("Output")
+        })
+        self.fuzzyvar_setting_dist_front = FuzzierVarSetting()
+        self.fuzzyvar_setting_dist_left = FuzzierVarSetting()
+        self.fuzzyvar_setting_dist_right = FuzzierVarSetting()
+        self.fuzzyvar_setting_output = FuzzierVarSetting()
+
+        inner_layout.addWidget(self.fuzzyvar_ui_selection)
+        inner_layout.addWidget(self.fuzzyvar_setting_stack)
+        group_box.setLayout(inner_layout)
+
+        self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_dist_front)
+        self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_dist_left)
+        self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_dist_right)
+        self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_output)
+
+        self.fuzzyvar_ui_selection.sig_rbtn_changed.connect(
+            self.__change_fuzzyvar_setting_ui_stack)
+
+        self.__layout.addWidget(group_box)
 
     def __setConsoleUI(self):
         self.__console = QTextEdit()
         self.__console.setReadOnly(True)
         self.__console.setStatusTip("Show the logs of status changing.")
         self.__layout.addWidget(self.__console)
+
+    @pyqtSlot(str)
+    def __change_fuzzyvar_setting_ui_stack(self, name):
+        if name == 'front':
+            self.fuzzyvar_setting_stack.setCurrentIndex(0)
+        elif name == 'left':
+            self.fuzzyvar_setting_stack.setCurrentIndex(1)
+        elif name == 'right':
+            self.fuzzyvar_setting_stack.setCurrentIndex(2)
+        else:
+            self.fuzzyvar_setting_stack.setCurrentIndex(3)
 
     @pyqtSlot()
     def __change_map(self):
@@ -161,8 +196,8 @@ class ControlFrame(QFrame):
         self.implication_selections.setDisabled(True)
         self.vars_combine_selection.setDisabled(True)
         self.rules_combine_selection.setDisabled(True)
-        self.in_fuzzyvar_setting.setDisabled(True)
-        self.out_fuzzyvar_setting.setDisabled(True)
+        self.fuzzyvar_setting_dist_front.setDisabled(True)
+        self.fuzzyvar_setting_output.setDisabled(True)
 
     @pyqtSlot()
     def __reset_widgets(self):
@@ -174,8 +209,8 @@ class ControlFrame(QFrame):
         self.implication_selections.setEnabled(True)
         self.vars_combine_selection.setEnabled(True)
         self.rules_combine_selection.setEnabled(True)
-        self.in_fuzzyvar_setting.setEnabled(True)
-        self.out_fuzzyvar_setting.setEnabled(True)
+        self.fuzzyvar_setting_dist_front.setEnabled(True)
+        self.fuzzyvar_setting_output.setEnabled(True)
 
     @pyqtSlot()
     def __run(self):
@@ -187,7 +222,10 @@ class ControlFrame(QFrame):
         self.__thread.sig_dists.connect(self.display_panel.show_dists)
         self.__thread.start()
 
+
 class RadioButtonSet(QFrame):
+    sig_rbtn_changed = pyqtSignal(str)
+
     def __init__(self, named_radiobtns):
         super().__init__()
         layout = QHBoxLayout()
@@ -196,12 +234,19 @@ class RadioButtonSet(QFrame):
         self.named_radiobtns = named_radiobtns
         next(iter(self.named_radiobtns.values())).toggle()
         for radiobtn in self.named_radiobtns.values():
+            radiobtn.toggled.connect(self.update_selection)
             layout.addWidget(radiobtn)
 
+    @pyqtSlot()
+    def update_selection(self):
+        for name, btn in self.named_radiobtns.items():
+            if btn.isChecked():
+                self.sig_rbtn_changed.emit(name)
 
-class FuzzierVarSetting(QGroupBox):
-    def __init__(self, name):
-        super().__init__(name)
+
+class FuzzierVarSetting(QFrame):
+    def __init__(self):
+        super().__init__()
         self.__layout = QFormLayout()
         self.setLayout(self.__layout)
 
