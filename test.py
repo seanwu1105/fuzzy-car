@@ -1,1 +1,3 @@
-print(465.5 % 360)
+import operator
+
+print(operator.mul(12, 5))

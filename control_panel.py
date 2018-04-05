@@ -1,14 +1,18 @@
 """ Define the contents of control panel. """
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
+import itertools
+
+from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                              QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
                              QLabel, QRadioButton, QTextEdit, QCheckBox,
-                             QStackedWidget)
+                             QStackedWidget, QTableWidget, QTableWidgetItem,
+                             QHeaderView)
 
 from display_panel import DisplayFrame
 from fuzzier_viewer import FuzzierViewer
+from fuzzy_system import FuzzySystem
 from car import Car
 from run import RunCar
 
@@ -31,17 +35,18 @@ class ControlFrame(QFrame):
         self.setLayout(self.__layout)
         self.__layout.setContentsMargins(0, 0, 0, 0)
 
-        self.__setCaseComboboxUI()
-        self.__setFuzzySetOperationTypeUI()
-        self.__setFuzzyVariableUI()
-        self.__setConsoleUI()
+        self.__set_case_combobox_ui()
+        self.__set_fuzzy_set_operation_types_ui()
+        self.__set_fuzzy_variables_ui()
+        self.__set_fuzzy_rules_ui()
+        self.__set_console_ui()
 
-    def __setCaseComboboxUI(self):
+    def __set_case_combobox_ui(self):
         group_box = QGroupBox("Case Data Selection")
         inner_layout = QHBoxLayout()
         group_box.setLayout(inner_layout)
 
-        self.data_selector = QComboBox(group_box)
+        self.data_selector = QComboBox()
         self.data_selector.addItems(self.dataset.keys())
         self.data_selector.setStatusTip("Select the road map case.")
         self.data_selector.currentIndexChanged.connect(self.__change_map)
@@ -61,7 +66,7 @@ class ControlFrame(QFrame):
 
         self.__layout.addWidget(group_box)
 
-    def __setFuzzySetOperationTypeUI(self):
+    def __set_fuzzy_set_operation_types_ui(self):
         group_box = QGroupBox("Fuzzy Sets Operation Types")
         inner_layout = QFormLayout()
         group_box.setLayout(inner_layout)
@@ -86,13 +91,13 @@ class ControlFrame(QFrame):
             "imp_m": QRadioButton("Mamdani"),
             "imp_p": QRadioButton("Product")
         })
-        self.vars_combine_selection = RadioButtonSet({
+        self.combination_vars_selection = RadioButtonSet({
             "tn_min": QRadioButton("Minimum"),
             "tn_ap": QRadioButton("Algebraic Product"),
             "tn_bp": QRadioButton("Bounded Product"),
             "tn_dp": QRadioButton("Drastic Product")
         })
-        self.rules_combine_selection = RadioButtonSet({
+        self.combination_rules_selection = RadioButtonSet({
             "tc_max": QRadioButton("Maximum"),
             "tc_as": QRadioButton("Algebraic Sum"),
             "tc_bs": QRadioButton("Bounded Sum"),
@@ -107,12 +112,12 @@ class ControlFrame(QFrame):
                                                         "composition.")
         self.implication_selections.setStatusTip("Choose the methods for fuzzy "
                                                  "implication.")
-        self.vars_combine_selection.setStatusTip("Choose the methods of "
-                                                 "combination of multiple fuzzy "
-                                                 "variables.")
-        self.rules_combine_selection.setStatusTip("Choose the methods of "
-                                                  "combination of multiple fuzzy "
-                                                  "rules.")
+        self.combination_vars_selection.setStatusTip("Choose the methods of "
+                                                     "combination of multiple "
+                                                     "fuzzy variables.")
+        self.combination_rules_selection.setStatusTip("Choose the methods of "
+                                                      "combination of "
+                                                      "multiple fuzzy rules.")
 
         inner_layout.addRow(QLabel("Composition T-Norm:"),
                             self.composition_tnorm_selection)
@@ -121,25 +126,25 @@ class ControlFrame(QFrame):
         inner_layout.addRow(QLabel("Implication:"),
                             self.implication_selections)
         inner_layout.addRow(QLabel("Combination of Variables:"),
-                            self.vars_combine_selection)
+                            self.combination_vars_selection)
         inner_layout.addRow(QLabel("Combination of Rules:"),
-                            self.rules_combine_selection)
+                            self.combination_rules_selection)
 
         self.__layout.addWidget(group_box)
 
-    def __setFuzzyVariableUI(self):
+    def __set_fuzzy_variables_ui(self):
         group_box = QGroupBox("Fuzzy Variables Settings")
+        group_box.setStatusTip("Set the membership functions for each fuzzy "
+                               "variable.")
         inner_layout = QVBoxLayout()
         self.fuzzyvar_setting_stack = QStackedWidget()
         self.fuzzyvar_ui_selection = RadioButtonSet({
             "front": QRadioButton("Front Distance Radar"),
-            "left": QRadioButton("Left Distance Radar"),
-            "right": QRadioButton("Right Distance Radar"),
-            "output": QRadioButton("Output")
+            "lrdiff": QRadioButton("(Left-Right) Distance Radar"),
+            "consequence": QRadioButton("Consequence")
         })
         self.fuzzyvar_setting_dist_front = FuzzierVarSetting()
-        self.fuzzyvar_setting_dist_left = FuzzierVarSetting()
-        self.fuzzyvar_setting_dist_right = FuzzierVarSetting()
+        self.fuzzyvar_setting_dist_lrdiff = FuzzierVarSetting()
         self.fuzzyvar_setting_output = FuzzierVarSetting()
 
         inner_layout.addWidget(self.fuzzyvar_ui_selection)
@@ -147,8 +152,8 @@ class ControlFrame(QFrame):
         group_box.setLayout(inner_layout)
 
         self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_dist_front)
-        self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_dist_left)
-        self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_dist_right)
+        self.fuzzyvar_setting_stack.addWidget(
+            self.fuzzyvar_setting_dist_lrdiff)
         self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_output)
 
         self.fuzzyvar_ui_selection.sig_rbtn_changed.connect(
@@ -156,7 +161,18 @@ class ControlFrame(QFrame):
 
         self.__layout.addWidget(group_box)
 
-    def __setConsoleUI(self):
+    def __set_fuzzy_rules_ui(self):
+        antecedents = ('small', 'medium', 'large')
+
+        group_box = QGroupBox("Fuzzy Rules Setting")
+        inner_layout = QVBoxLayout()
+        self.rules_setting = FuzzyRulesSetting(
+            [p for p in itertools.product(antecedents, repeat=2)])
+        inner_layout.addWidget(self.rules_setting)
+        group_box.setLayout(inner_layout)
+        self.__layout.addWidget(group_box)
+
+    def __set_console_ui(self):
         self.__console = QTextEdit()
         self.__console.setReadOnly(True)
         self.__console.setStatusTip("Show the logs of status changing.")
@@ -166,12 +182,10 @@ class ControlFrame(QFrame):
     def __change_fuzzyvar_setting_ui_stack(self, name):
         if name == 'front':
             self.fuzzyvar_setting_stack.setCurrentIndex(0)
-        elif name == 'left':
+        elif name == 'lrdiff':
             self.fuzzyvar_setting_stack.setCurrentIndex(1)
-        elif name == 'right':
-            self.fuzzyvar_setting_stack.setCurrentIndex(2)
         else:
-            self.fuzzyvar_setting_stack.setCurrentIndex(3)
+            self.fuzzyvar_setting_stack.setCurrentIndex(2)
 
     @pyqtSlot()
     def __change_map(self):
@@ -194,10 +208,12 @@ class ControlFrame(QFrame):
         self.composition_tnorm_selection.setDisabled(True)
         self.composition_tconorm_selection.setDisabled(True)
         self.implication_selections.setDisabled(True)
-        self.vars_combine_selection.setDisabled(True)
-        self.rules_combine_selection.setDisabled(True)
+        self.combination_vars_selection.setDisabled(True)
+        self.combination_rules_selection.setDisabled(True)
         self.fuzzyvar_setting_dist_front.setDisabled(True)
+        self.fuzzyvar_setting_dist_lrdiff.setDisabled(True)
         self.fuzzyvar_setting_output.setDisabled(True)
+        self.rules_setting.setDisabled(True)
 
     @pyqtSlot()
     def __reset_widgets(self):
@@ -207,13 +223,23 @@ class ControlFrame(QFrame):
         self.composition_tnorm_selection.setEnabled(True)
         self.composition_tconorm_selection.setEnabled(True)
         self.implication_selections.setEnabled(True)
-        self.vars_combine_selection.setEnabled(True)
-        self.rules_combine_selection.setEnabled(True)
+        self.combination_vars_selection.setEnabled(True)
+        self.combination_rules_selection.setEnabled(True)
         self.fuzzyvar_setting_dist_front.setEnabled(True)
+        self.fuzzyvar_setting_dist_lrdiff.setEnabled(True)
         self.fuzzyvar_setting_output.setEnabled(True)
+        self.rules_setting.setEnabled(True)
 
     @pyqtSlot()
     def __run(self):
+        self.fuzzy_system = FuzzySystem()
+        self.fuzzy_system.set_operation_types(
+            self.composition_tnorm_selection.get_selected_name(),
+            self.composition_tconorm_selection.get_selected_name(),
+            self.implication_selections.get_selected_name(),
+            self.combination_vars_selection.get_selected_name(),
+            self.combination_rules_selection.get_selected_name())
+
         self.__thread = RunCar(self.__car)
         self.__thread.started.connect(self.__init_widgets)
         self.__thread.finished.connect(self.__reset_widgets)
@@ -234,33 +260,35 @@ class RadioButtonSet(QFrame):
         self.named_radiobtns = named_radiobtns
         next(iter(self.named_radiobtns.values())).toggle()
         for radiobtn in self.named_radiobtns.values():
-            radiobtn.toggled.connect(self.update_selection)
+            radiobtn.toggled.connect(self.get_selected_name)
             layout.addWidget(radiobtn)
 
     @pyqtSlot()
-    def update_selection(self):
+    def get_selected_name(self):
         for name, btn in self.named_radiobtns.items():
             if btn.isChecked():
                 self.sig_rbtn_changed.emit(name)
+                return name
 
 
 class FuzzierVarSetting(QFrame):
     def __init__(self):
         super().__init__()
-        self.__layout = QFormLayout()
-        self.setLayout(self.__layout)
+        self.setFrameShape(QFrame.StyledPanel)
+        layout = QFormLayout()
+        self.setLayout(layout)
 
         self.small = GaussianFuzzierSetting()
         self.medium = GaussianFuzzierSetting()
         self.large = GaussianFuzzierSetting()
 
-        self.__layout.addRow(QLabel("Small:"), self.small)
-        self.__layout.addRow(QLabel("Medium:"), self.medium)
-        self.__layout.addRow(QLabel("Large:"), self.large)
+        layout.addRow(QLabel("Small:"), self.small)
+        layout.addRow(QLabel("Medium:"), self.medium)
+        layout.addRow(QLabel("Large:"), self.large)
 
         self.viewer = FuzzierViewer()
 
-        self.__layout.addRow(self.viewer)
+        layout.addRow(self.viewer)
 
         self.small.mean.setValue(0)
         self.medium.mean.setValue(5)
@@ -340,3 +368,42 @@ class GaussianFuzzierSetting(QFrame):
         layout.addWidget(self.sd, 1)
         layout.addWidget(self.ascending)
         layout.addWidget(self.descending)
+
+
+class FuzzyRulesSetting(QTableWidget):
+    def __init__(self, antecedent_product):
+        super().__init__(
+            len(antecedent_product[0]) + 1, len(antecedent_product))
+        self.horizontalHeader().hide()
+        self.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.setVerticalHeaderLabels(
+            ['Front Dist.', '(Left-Right) Dist.', 'Consequence'])
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.rules_selections = dict()
+
+        for col, antecedents in enumerate(antecedent_product):
+            for row, antecedent in enumerate(antecedents):
+                item = QTableWidgetItem(antecedent)
+                item.setFlags(Qt.ItemIsEnabled)
+                item.setTextAlignment(Qt.AlignCenter)
+                self.setItem(row, col, item)
+            combobox = QComboBox()
+            combobox.addItems(['small', 'medium', 'large'])
+            self.rules_selections[antecedents] = combobox
+
+        for col, consequence in enumerate(self.rules_selections.values()):
+            self.setCellWidget(2, col, consequence)
+
+    def get_rules(self):
+        rules = dict()
+        for antecendent, consequence_selection in self.rules_selections.items():
+            rules[antecendent] = consequence_selection.currentText()
+        return rules
+
+    def setDisabled(self, boolean):
+        for consequence_selection in self.rules_selections.values():
+            consequence_selection.setDisabled(boolean)
+
+    def setEnabled(self, boolean):
+        for consequence_selection in self.rules_selections.values():
+            consequence_selection.setEnabled(boolean)

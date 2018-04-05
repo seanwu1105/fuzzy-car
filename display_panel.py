@@ -32,10 +32,11 @@ class DisplayFrame(QFrame):
 
         self.car_position = QLabel("(0, 0)")
         self.car_angle = QLabel("0")
-        self.wheel_angle = QLabel("0")
-        self.dist_front = QLabel("0")
-        self.dist_left = QLabel("0")
-        self.dist_right = QLabel("0")
+        self.wheel_angle = QLabel("0.0")
+        self.dist_front = QLabel("--")
+        self.dist_left = QLabel("--")
+        self.dist_right = QLabel("--")
+        self.dist_lrdiff = QLabel("--")
 
         self.car_position.setAlignment(Qt.AlignCenter)
         self.car_angle.setAlignment(Qt.AlignCenter)
@@ -43,6 +44,7 @@ class DisplayFrame(QFrame):
         self.dist_front.setAlignment(Qt.AlignCenter)
         self.dist_left.setAlignment(Qt.AlignCenter)
         self.dist_right.setAlignment(Qt.AlignCenter)
+        self.dist_lrdiff.setAlignment(Qt.AlignCenter)
 
         self.car_angle_label = QLabel("Car Angle:")
         self.wheel_angle_label = QLabel("Wheel Angle:")
@@ -59,6 +61,7 @@ class DisplayFrame(QFrame):
         inner_layout.addRow(QLabel("Front Distance:"), self.dist_front)
         inner_layout.addRow(QLabel("Left Distance:"), self.dist_left)
         inner_layout.addRow(QLabel("Right Distance:"), self.dist_right)
+        inner_layout.addRow(QLabel("(Left - Right) Distance:"), self.dist_lrdiff)
 
     @pyqtSlot(dict)
     def change_map(self, data):
@@ -79,3 +82,9 @@ class DisplayFrame(QFrame):
         self.dist_front.setText(str(dists[0]))
         self.dist_left.setText(str(dists[1]))
         self.dist_right.setText(str(dists[2]))
+        try:
+            lrdiff = float(dists[1]) - float(dists[2])
+        except ValueError:
+            self.dist_lrdiff.setText('--')
+        else:
+            self.dist_lrdiff.setText(str(lrdiff))

@@ -10,6 +10,7 @@ from PyQt5.QtChart import QChart, QChartView, QLineSeries
 class FuzzierViewer(QFrame):
     def __init__(self):
         super().__init__()
+        self.setMinimumHeight(55)
         layout = QHBoxLayout()
         self.setLayout(layout)
         self.setStatusTip("Display the fuzziers in plot.")
@@ -20,7 +21,7 @@ class FuzzierViewer(QFrame):
         self.chart.layout().setContentsMargins(0, 0, 0, 0)
         self.chart.setMargins(QMargins())
         self.chart.setBackgroundRoundness(0)
-        self.chart.setMinimumHeight(55)
+        
 
         chart_view = QChartView(self.chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
