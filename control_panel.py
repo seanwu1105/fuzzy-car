@@ -28,9 +28,6 @@ class ControlFrame(QFrame):
                             "'DisplayFrame'")
         self.dataset = dataset
 
-        self.__car = None
-        self.__thread = None
-
         self.__layout = QVBoxLayout()
         self.setLayout(self.__layout)
         self.__layout.setContentsMargins(0, 0, 0, 0)
@@ -207,7 +204,6 @@ class ControlFrame(QFrame):
 
     @pyqtSlot()
     def __run(self):
-
         self.__thread = RunCar(self.__car, self.__create_fuzzy_system())
         self.__thread.started.connect(self.__init_widgets)
         self.__thread.finished.connect(self.__reset_widgets)
@@ -246,10 +242,10 @@ class ControlFrame(QFrame):
             self.implication_selections.get_selected_name(),
             self.combination_vars_selection.get_selected_name(),
             self.combination_rules_selection.get_selected_name())
-        
-        for antecendent, consequence in self.rules_setting.rules.items():
-            fuzzy_system.add_rule(consequence, *antecendent)
-        
+
+        for antecendent_names, consequence_name in self.rules_setting.rules.items():
+            fuzzy_system.add_rule(consequence_name, antecendent_names)
+
         return fuzzy_system
 
 

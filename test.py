@@ -1,5 +1,1 @@
-def a(consequence, *antecedents):
-    print(consequence)
-    print(antecedents)
-
-a('a', 'b', 'c')
+print(-90 % 360)

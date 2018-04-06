@@ -1,6 +1,10 @@
 import math
 
+import numpy as np
+
 from planecoord import Line2D, LineSeg2D
+
+np.set_printoptions(suppress=True)
 
 
 class Car(object):
@@ -8,14 +12,14 @@ class Car(object):
         """The car controlled by fuzzy system.
 
         Args:
-            pos (tuple): (x, y) position of the car.
+            pos (list): (x, y) position of the car.
             angle (float): the angle of the car in degree and always in
                 [0, 360).
             radius (int): the size (radius) of the car.
             wall_points (list): a list with all the edge points of the map.
         """
 
-        self.pos = pos
+        self.pos = list(pos)
         self.angle = angle % 360
         self.radius = radius
         self.wheel_angle = 0
@@ -24,30 +28,43 @@ class Car(object):
             self.walls.append(
                 LineSeg2D(wall_points[idx], wall_points[idx + 1]))
 
-    def move(self):
-        pass
+    def move(self, wheel_angle):
+        self.wheel_angle = max(min(wheel_angle, 40), -40)
+        wheel_angle = math.radians(self.wheel_angle)
+        car_angle = math.radians(self.angle)
 
-    def dist_radar(self, direction, get_intersection=False):
+        self.pos[0] += math.cos(car_angle + wheel_angle) + \
+            math.sin(wheel_angle) * math.sin(car_angle)
+        self.pos[1] += math.sin(car_angle + wheel_angle) - \
+            math.sin(wheel_angle) * math.cos(car_angle)
+        self.angle = (
+            self.angle - math.degrees(math.asin(
+                math.sin(wheel_angle) / self.radius))) % 360
+
+    def dist_radar(self, direction):
         if direction == 'front':
-            degree = self.angle
+            degree = self.angle % 360
         elif direction == 'left':
             degree = (self.angle + 30) % 360
         else:
             degree = (self.angle - 30) % 360
+
         radar = Line2D(self.pos, (self.pos[0] + math.cos(math.radians(degree)),
                                   self.pos[1] + math.sin(math.radians(degree))))
         intersections = []
         for wall in self.walls:
             inter = wall.intersection(radar)
             if inter is not None:
-                if (degree == 0 and inter[0] > 0
-                        or degree == 180 and inter[0] < 0
-                        or 0 < degree < 180 and inter[1] > 0
-                        or 180 < degree < 360 and inter[1] < 0):
+                if (0 < degree < 180 and inter[1] > self.pos[1]
+                        or 180 < degree < 360 and inter[1] < self.pos[1]
+                        or degree == 0 and inter[0] > self.pos[0]
+                        or degree == 180 and inter[0] < self.pos[0]):
                     intersections.append(inter)
-        if get_intersection:
-            return min(intersections, key=lambda item: dist(self.pos, item))
-        return min(dist(self.pos, i) for i in intersections)
+
+        if not intersections:
+            return (None, '--')
+        return (min(intersections, key=lambda item: dist(self.pos, item)),
+                min(dist(self.pos, i) for i in intersections))
 
 
 def dist(pt0, pt1):

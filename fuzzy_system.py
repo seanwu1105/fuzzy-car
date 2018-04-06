@@ -6,6 +6,7 @@ class FuzzySystem(object):
     def __init__(self, consequence, *antecedents):
         self.consequence = consequence
         self.antecedents = antecedents
+        self.rules = dict()
 
     def set_operation_types(self,
                             implication='imp_m',
@@ -43,11 +44,29 @@ class FuzzySystem(object):
         else:  # tc_ds
             self.combination_rules = drastic_sum
 
-    def add_rule(self, consequence_fuzzy_set_name, *antecedent__fuzzy_set_names):
-        # XXX: Should check and be able to match the name of membership
-        # functions for consequnce and antecedents respectively
-        print(consequence_fuzzy_set_name)
-        print(antecedent__fuzzy_set_names)
+    def add_rule(self, consequence_fuzzy_set_name, antecedent__fuzzy_set_names):
+        """Add a fuzzy rule.
+
+        Args:
+            consequence_fuzzy_set_name (string): One fuzzy set name of
+                consequence.
+            antecedent__fuzzy_set_names (tuple(string)): A tuple containing
+                fuzzy set names for each antecedents in the same sequence of
+                `self.antecedents`.
+
+        Raises:
+            KeyError: When the name cannot be found in the fuzzy set of
+                corresponding variable.
+        """
+
+        if consequence_fuzzy_set_name not in self.consequence.fuzzy_sets.keys():
+            raise KeyError("Cannot find '%s' in 'self.consequence'" %
+                           consequence_fuzzy_set_name)
+        for name, var in zip(antecedent__fuzzy_set_names, self.antecedents):
+            if name not in var.fuzzy_sets.keys():
+                raise KeyError("Connot find '%s' in '%s'" %
+                               (name, var.fuzzy_sets.keys()))
+        self.rules[antecedent__fuzzy_set_names] = consequence_fuzzy_set_name
 
     def singleton_result(self, *inputs):
         # XXX: basically, OR(9 rules with AND(2 antecendents))

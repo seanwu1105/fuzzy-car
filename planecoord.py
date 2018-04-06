@@ -23,7 +23,7 @@ class Line2D(object):
 
         if arg3 is None:
             # two-points form
-            if isinstance(arg1, tuple):
+            if isinstance(arg1, (tuple, list)):
                 arg1 = (Decimal(str(arg1[0])), Decimal(str(arg1[1])))
                 arg2 = (Decimal(str(arg2[0])), Decimal(str(arg2[1])))
                 # vertical line
@@ -102,26 +102,26 @@ class LineSeg2D(Line2D):
         if inter is None:
             return None
         if type(line) == Line2D:
-            if (self.ranging_pt1[0] - self.ranging_pt2[0] == 0
-                    and self.ymin <= inter[1] <= self.ymax):
-                # vertical line segment
-                return inter
+            if self.ranging_pt1[0] - self.ranging_pt2[0] == 0:
+                # self is vertical line segment
+                if self.ymin <= inter[1] <= self.ymax:
+                    return inter
             elif self.xmin <= inter[0] <= self.xmax:
-                # oblique line
+                # self is oblique line
                 return inter
             else:
                 return None
         elif type(line) == LineSeg2D:
-            if (self.ranging_pt1[0] - self.ranging_pt2[0] == 0
-                    and self.ymin <= inter[1] <= self.ymax
-                    and line.xmin <= inter[0] <= line.xmax):
+            if self.ranging_pt1[0] - self.ranging_pt2[0] == 0:
                 # vertical line segment (self)
-                return inter
-            elif (line.ranging_pt1[0] - line.ranging_pt2[0] == 0
-                  and line.ymin <= inter[1] <= line.ymax
-                  and self.xmin <= inter[0] <= self.xmax):
+                if (self.ymin <= inter[1] <= self.ymax
+                        and line.xmin <= inter[0] <= line.xmax):
+                    return inter
+            elif line.ranging_pt1[0] - line.ranging_pt2[0] == 0:
                 # vertical line segment (line)
-                return inter
+                if (line.ymin <= inter[1] <= line.ymax
+                        and self.xmin <= inter[0] <= self.xmax):
+                    return inter
             elif (self.xmin <= inter[0] <= self.xmax
                   and line.xmin <= inter[0] <= line.xmax):
                 return inter

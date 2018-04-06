@@ -61,23 +61,24 @@ class DisplayFrame(QFrame):
         inner_layout.addRow(QLabel("Front Distance:"), self.dist_front)
         inner_layout.addRow(QLabel("Left Distance:"), self.dist_left)
         inner_layout.addRow(QLabel("Right Distance:"), self.dist_right)
-        inner_layout.addRow(QLabel("(Left - Right) Distance:"), self.dist_lrdiff)
+        inner_layout.addRow(
+            QLabel("(Left - Right) Distance:"), self.dist_lrdiff)
 
     @pyqtSlot(dict)
     def change_map(self, data):
         self.simulator.paint_map(data)
         self.move_car(data['start_pos'], data['start_angle'])
-        self.show_dists(data['start_pos'], ['--'] * 3, [data['start_pos']] * 3)
+        self.show_dists(data['start_pos'], [data['start_pos']] * 3, ['--'] * 3)
 
-    @pyqtSlot(tuple, float, float)
-    def move_car(self, pos, angle, wheel_angle=0):
+    @pyqtSlot(list, float, float)
+    def move_car(self, pos, angle, wheel_angle=0.0):
         self.simulator.paint_car(pos, angle)
-        self.car_position.setText("({}, {})".format(*pos))
-        self.car_angle.setText(str(angle))
-        self.wheel_angle.setText(str(wheel_angle))
+        self.car_position.setText("({:.5}, {:.5})".format(*pos))
+        self.car_angle.setText("{:.5}".format(angle))
+        self.wheel_angle.setText("{:.5}".format(wheel_angle))
 
-    @pyqtSlot(tuple, list, list)
-    def show_dists(self, pos, dists, intersections):
+    @pyqtSlot(list, list, list)
+    def show_dists(self, pos, intersections, dists):
         self.simulator.paint_dist(pos, intersections)
         self.dist_front.setText(str(dists[0]))
         self.dist_left.setText(str(dists[1]))

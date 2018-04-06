@@ -66,7 +66,7 @@ class CarPlot(FigureCanvas):
 
         self.__dists = [Line2D(*zip(pos, i),
                                linestyle=':',
-                               color='grey') for i in intersections]
+                               color='grey') for i in intersections if i is not None]
         for dist in self.__dists:
             self.axes.add_line(dist)
         self.draw()
