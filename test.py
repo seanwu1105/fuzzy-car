@@ -1,3 +1,5 @@
-import operator
+def a(consequence, *antecedents):
+    print(consequence)
+    print(antecedents)
 
-print(operator.mul(12, 5))
+a('a', 'b', 'c')

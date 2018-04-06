@@ -9,10 +9,13 @@ class RunCar(QThread):
     sig_car = pyqtSignal(tuple, float, float)
     sig_dists = pyqtSignal(tuple, list, list)
 
-    def __init__(self, car):
+    def __init__(self, car, fuzzy_system):
         super().__init__()
         self.car = car
+        self.fuzzy_system = fuzzy_system
         self.abort = True
+
+        #XXX: print(fuzzy_system.consequence.fuzzy_sets['large'](5))
 
     @pyqtSlot()
     def run(self):

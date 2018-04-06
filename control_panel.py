@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
 
 from display_panel import DisplayFrame
 from fuzzier_viewer import FuzzierViewer
-from fuzzy_system import FuzzySystem
+from fuzzy_system import FuzzySystem, FuzzyVariable, get_gaussianf
 from car import Car
 from run import RunCar
 
@@ -71,18 +71,6 @@ class ControlFrame(QFrame):
         inner_layout = QFormLayout()
         group_box.setLayout(inner_layout)
 
-        self.composition_tnorm_selection = RadioButtonSet({
-            "tn_min": QRadioButton("Minimum"),
-            "tn_ap": QRadioButton("Algebraic Product"),
-            "tn_bp": QRadioButton("Bounded Product"),
-            "tn_dp": QRadioButton("Drastic Product")
-        })
-        self.composition_tconorm_selection = RadioButtonSet({
-            "tc_max": QRadioButton("Maximum"),
-            "tc_as": QRadioButton("Algebraic Sum"),
-            "tc_bs": QRadioButton("Bounded Sum"),
-            "tc_ds": QRadioButton("Drastic Sum")
-        })
         self.implication_selections = RadioButtonSet({
             "imp_dr": QRadioButton("Dienes-Rescher"),
             "imp_l": QRadioButton("Lukasieweicz"),
@@ -104,12 +92,6 @@ class ControlFrame(QFrame):
             "tc_ds": QRadioButton("Drastic Sum")
         })
 
-        self.composition_tnorm_selection.setStatusTip("Choose the method of "
-                                                      "t-norm for fuzzy "
-                                                      "composition.")
-        self.composition_tconorm_selection.setStatusTip("Choose the method of "
-                                                        "t-conorm for fuzzy "
-                                                        "composition.")
         self.implication_selections.setStatusTip("Choose the methods for fuzzy "
                                                  "implication.")
         self.combination_vars_selection.setStatusTip("Choose the methods of "
@@ -119,10 +101,6 @@ class ControlFrame(QFrame):
                                                       "combination of "
                                                       "multiple fuzzy rules.")
 
-        inner_layout.addRow(QLabel("Composition T-Norm:"),
-                            self.composition_tnorm_selection)
-        inner_layout.addRow(QLabel("Composition T-Conorm:"),
-                            self.composition_tconorm_selection)
         inner_layout.addRow(QLabel("Implication:"),
                             self.implication_selections)
         inner_layout.addRow(QLabel("Combination of Variables:"),
@@ -145,7 +123,7 @@ class ControlFrame(QFrame):
         })
         self.fuzzyvar_setting_dist_front = FuzzierVarSetting()
         self.fuzzyvar_setting_dist_lrdiff = FuzzierVarSetting()
-        self.fuzzyvar_setting_output = FuzzierVarSetting()
+        self.fuzzyvar_setting_consequence = FuzzierVarSetting()
 
         inner_layout.addWidget(self.fuzzyvar_ui_selection)
         inner_layout.addWidget(self.fuzzyvar_setting_stack)
@@ -154,7 +132,8 @@ class ControlFrame(QFrame):
         self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_dist_front)
         self.fuzzyvar_setting_stack.addWidget(
             self.fuzzyvar_setting_dist_lrdiff)
-        self.fuzzyvar_setting_stack.addWidget(self.fuzzyvar_setting_output)
+        self.fuzzyvar_setting_stack.addWidget(
+            self.fuzzyvar_setting_consequence)
 
         self.fuzzyvar_ui_selection.sig_rbtn_changed.connect(
             self.__change_fuzzyvar_setting_ui_stack)
@@ -205,14 +184,12 @@ class ControlFrame(QFrame):
         self.start_btn.setDisabled(True)
         self.stop_btn.setEnabled(True)
         self.data_selector.setDisabled(True)
-        self.composition_tnorm_selection.setDisabled(True)
-        self.composition_tconorm_selection.setDisabled(True)
         self.implication_selections.setDisabled(True)
         self.combination_vars_selection.setDisabled(True)
         self.combination_rules_selection.setDisabled(True)
         self.fuzzyvar_setting_dist_front.setDisabled(True)
         self.fuzzyvar_setting_dist_lrdiff.setDisabled(True)
-        self.fuzzyvar_setting_output.setDisabled(True)
+        self.fuzzyvar_setting_consequence.setDisabled(True)
         self.rules_setting.setDisabled(True)
 
     @pyqtSlot()
@@ -220,33 +197,60 @@ class ControlFrame(QFrame):
         self.start_btn.setEnabled(True)
         self.stop_btn.setDisabled(True)
         self.data_selector.setEnabled(True)
-        self.composition_tnorm_selection.setEnabled(True)
-        self.composition_tconorm_selection.setEnabled(True)
         self.implication_selections.setEnabled(True)
         self.combination_vars_selection.setEnabled(True)
         self.combination_rules_selection.setEnabled(True)
         self.fuzzyvar_setting_dist_front.setEnabled(True)
         self.fuzzyvar_setting_dist_lrdiff.setEnabled(True)
-        self.fuzzyvar_setting_output.setEnabled(True)
+        self.fuzzyvar_setting_consequence.setEnabled(True)
         self.rules_setting.setEnabled(True)
 
     @pyqtSlot()
     def __run(self):
-        self.fuzzy_system = FuzzySystem()
-        self.fuzzy_system.set_operation_types(
-            self.composition_tnorm_selection.get_selected_name(),
-            self.composition_tconorm_selection.get_selected_name(),
-            self.implication_selections.get_selected_name(),
-            self.combination_vars_selection.get_selected_name(),
-            self.combination_rules_selection.get_selected_name())
 
-        self.__thread = RunCar(self.__car)
+        self.__thread = RunCar(self.__car, self.__create_fuzzy_system())
         self.__thread.started.connect(self.__init_widgets)
         self.__thread.finished.connect(self.__reset_widgets)
         self.__thread.sig_console.connect(self.__print_console)
         self.__thread.sig_car.connect(self.display_panel.move_car)
         self.__thread.sig_dists.connect(self.display_panel.show_dists)
         self.__thread.start()
+
+    def __create_fuzzy_system(self):
+        dist_front = FuzzyVariable()
+        dist_front.add_membershipf(
+            'small', get_gaussianf(*self.fuzzyvar_setting_dist_front.small.get_values()))
+        dist_front.add_membershipf(
+            'medium', get_gaussianf(*self.fuzzyvar_setting_dist_front.medium.get_values()))
+        dist_front.add_membershipf(
+            'large', get_gaussianf(*self.fuzzyvar_setting_dist_front.large.get_values()))
+
+        dist_lrdiff = FuzzyVariable()
+        dist_lrdiff.add_membershipf(
+            'small', get_gaussianf(*self.fuzzyvar_setting_dist_lrdiff.small.get_values()))
+        dist_lrdiff.add_membershipf(
+            'medium', get_gaussianf(*self.fuzzyvar_setting_dist_lrdiff.medium.get_values()))
+        dist_lrdiff.add_membershipf(
+            'large', get_gaussianf(*self.fuzzyvar_setting_dist_lrdiff.large.get_values()))
+
+        consequence = FuzzyVariable()
+        consequence.add_membershipf(
+            'small', get_gaussianf(*self.fuzzyvar_setting_consequence.small.get_values()))
+        consequence.add_membershipf(
+            'medium', get_gaussianf(*self.fuzzyvar_setting_consequence.medium.get_values()))
+        consequence.add_membershipf(
+            'large', get_gaussianf(*self.fuzzyvar_setting_consequence.large.get_values()))
+
+        fuzzy_system = FuzzySystem(consequence, dist_front, dist_lrdiff)
+        fuzzy_system.set_operation_types(
+            self.implication_selections.get_selected_name(),
+            self.combination_vars_selection.get_selected_name(),
+            self.combination_rules_selection.get_selected_name())
+        
+        for antecendent, consequence in self.rules_setting.rules.items():
+            fuzzy_system.add_rule(consequence, *antecendent)
+        
+        return fuzzy_system
 
 
 class RadioButtonSet(QFrame):
@@ -278,6 +282,8 @@ class FuzzierVarSetting(QFrame):
         layout = QFormLayout()
         self.setLayout(layout)
 
+        # Create the fuzzy 3 sets with name and its membership function which is
+        # Gaussian distribution.
         self.small = GaussianFuzzierSetting()
         self.medium = GaussianFuzzierSetting()
         self.large = GaussianFuzzierSetting()
@@ -296,18 +302,11 @@ class FuzzierVarSetting(QFrame):
 
         self.update_viewer()
 
-        self.small.mean.valueChanged.connect(self.update_viewer)
-        self.small.sd.valueChanged.connect(self.update_viewer)
-        self.small.ascending.stateChanged.connect(self.update_viewer)
-        self.small.descending.stateChanged.connect(self.update_viewer)
-        self.medium.mean.valueChanged.connect(self.update_viewer)
-        self.medium.sd.valueChanged.connect(self.update_viewer)
-        self.medium.ascending.stateChanged.connect(self.update_viewer)
-        self.medium.descending.stateChanged.connect(self.update_viewer)
-        self.large.mean.valueChanged.connect(self.update_viewer)
-        self.large.sd.valueChanged.connect(self.update_viewer)
-        self.large.ascending.stateChanged.connect(self.update_viewer)
-        self.large.descending.stateChanged.connect(self.update_viewer)
+        for var in (self.small, self.medium, self.large):
+            var.mean.valueChanged.connect(self.update_viewer)
+            var.sd.valueChanged.connect(self.update_viewer)
+            var.ascending.stateChanged.connect(self.update_viewer)
+            var.descending.stateChanged.connect(self.update_viewer)
 
     def setDisabled(self, boolean):
         self.small.setDisabled(boolean)
@@ -369,6 +368,10 @@ class GaussianFuzzierSetting(QFrame):
         layout.addWidget(self.ascending)
         layout.addWidget(self.descending)
 
+    def get_values(self):
+        return (self.mean.value(), self.sd.value(),
+                self.ascending.isChecked(), self.descending.isChecked())
+
 
 class FuzzyRulesSetting(QTableWidget):
     def __init__(self, antecedent_product):
@@ -394,7 +397,8 @@ class FuzzyRulesSetting(QTableWidget):
         for col, consequence in enumerate(self.rules_selections.values()):
             self.setCellWidget(2, col, consequence)
 
-    def get_rules(self):
+    @property
+    def rules(self):
         rules = dict()
         for antecendent, consequence_selection in self.rules_selections.items():
             rules[antecendent] = consequence_selection.currentText()

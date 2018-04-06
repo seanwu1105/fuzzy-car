@@ -1,21 +1,16 @@
+import math
 import operator
 
 
 class FuzzySystem(object):
-    def __init__(self):
-        pass
+    def __init__(self, consequence, *antecedents):
+        self.consequence = consequence
+        self.antecedents = antecedents
 
     def set_operation_types(self,
-                            composition_tnorm='tn_min',
-                            composition_tconorm='tc_max',
                             implication='imp_m',
                             combination_vars='tn_min',
                             combination_rules='tc_max'):
-
-        self.composition_tnorm = self.get_fuzzyset_op(composition_tnorm)
-        self.composition_tconorm = self.get_fuzzyset_op(composition_tconorm)
-        self.combination_vars = self.get_fuzzyset_op(combination_vars)
-        self.combination_rules = self.get_fuzzyset_op(combination_rules)
 
         if implication == 'imp_dr':
             self.implication = dienes_rescher_imp
@@ -28,25 +23,43 @@ class FuzzySystem(object):
         elif implication == 'imp_m':
             self.implication = min
         else:  # imp_p
-            self.composition_tnorm = operator.mul
+            self.implication = operator.mul
 
-    @staticmethod
-    def get_fuzzyset_op(type_name):
-        if type_name == 'tn_min':
-            return min
-        if type_name == 'tn_ap':
-            return operator.mul
-        if type_name == 'tn_bp':
-            return bounded_product
-        if type_name == 'tn_dp':
-            return drastic_product
-        if type_name == 'tc_max':
-            return max
-        if type_name == 'tc_as':
-            return algebraic_sum
-        if type_name == 'tc_bs':
-            return bounded_sum
-        return drastic_sum
+        if combination_vars == 'tn_min':
+            self.combination_vars = min
+        elif combination_vars == 'tn_ap':
+            self.combination_vars = operator.mul
+        elif combination_vars == 'tn_bp':
+            self.combination_vars = bounded_product
+        else:  # 'tn_dp'
+            self.combination_vars = drastic_product
+
+        if combination_rules == 'tc_max':
+            self.combination_rules = max
+        elif combination_rules == 'tc_as':
+            self.combination_rules = algebraic_sum
+        elif combination_rules == 'tc_bs':
+            self.combination_rules = bounded_sum
+        else:  # tc_ds
+            self.combination_rules = drastic_sum
+
+    def add_rule(self, consequence_fuzzy_set_name, *antecedent__fuzzy_set_names):
+        # XXX: Should check and be able to match the name of membership
+        # functions for consequnce and antecedents respectively
+        print(consequence_fuzzy_set_name)
+        print(antecedent__fuzzy_set_names)
+
+    def singleton_result(self, *inputs):
+        # XXX: basically, OR(9 rules with AND(2 antecendents))
+        pass
+
+
+class FuzzyVariable(object):
+    def __init__(self):
+        self.fuzzy_sets = dict()
+
+    def add_membershipf(self, fuzzy_set_name, membershipf):
+        self.fuzzy_sets[fuzzy_set_name] = membershipf
 
 
 def bounded_product(a, b):
@@ -93,3 +106,13 @@ def godel_imp(a, b):
     if a <= b:
         return 1
     return b / a
+
+
+def get_gaussianf(mean, sig, ascending, descending):
+    def gaussian(var):
+        if ascending and var > mean:
+            return 1
+        if descending and var < mean:
+            return 1
+        return math.exp(-(var - mean)**2 / sig**2)
+    return gaussian

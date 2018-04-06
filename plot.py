@@ -17,8 +17,8 @@ class CarPlot(FigureCanvas):
 
         super().__init__(fig)
 
-        self.setMinimumWidth(550)
-        self.setMinimumHeight(550)
+        self.setMinimumWidth(500)
+        self.setMinimumHeight(500)
         FigureCanvas.setSizePolicy(self,
                                    QSizePolicy.Expanding,
                                    QSizePolicy.Expanding)
