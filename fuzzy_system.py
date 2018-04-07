@@ -1,6 +1,8 @@
 import math
 import operator
 
+import numpy as np
+
 
 class FuzzySystem(object):
     def __init__(self, consequence, *antecedents):
@@ -22,55 +24,133 @@ class FuzzySystem(object):
         elif implication == 'imp_g':
             self.implication = godel_imp
         elif implication == 'imp_m':
-            self.implication = min
+            self.implication = mandani_imp
         else:  # imp_p
-            self.implication = operator.mul
+            self.implication = product_imp
 
         if combination_vars == 'tn_min':
-            self.combination_vars = min
+            self.combination_var = min
         elif combination_vars == 'tn_ap':
-            self.combination_vars = operator.mul
+            self.combination_var = operator.mul
         elif combination_vars == 'tn_bp':
-            self.combination_vars = bounded_product
+            self.combination_var = bounded_product
         else:  # 'tn_dp'
-            self.combination_vars = drastic_product
+            self.combination_var = drastic_product
 
         if combination_rules == 'tc_max':
-            self.combination_rules = max
+            self.combination_rule = max
         elif combination_rules == 'tc_as':
-            self.combination_rules = algebraic_sum
+            self.combination_rule = algebraic_sum
         elif combination_rules == 'tc_bs':
-            self.combination_rules = bounded_sum
+            self.combination_rule = bounded_sum
         else:  # tc_ds
-            self.combination_rules = drastic_sum
+            self.combination_rule = drastic_sum
 
-    def add_rule(self, consequence_fuzzy_set_name, antecedent__fuzzy_set_names):
+    def add_rule(self, consequence_fuzzy_set_name, antecedent_fuzzy_set_names):
         """Add a fuzzy rule.
 
         Args:
             consequence_fuzzy_set_name (string): One fuzzy set name of
                 consequence.
-            antecedent__fuzzy_set_names (tuple(string)): A tuple containing
+            antecedent_fuzzy_set_names (tuple(string)): A tuple containing
                 fuzzy set names for each antecedents in the same sequence of
                 `self.antecedents`.
 
         Raises:
             KeyError: When the name cannot be found in the fuzzy set of
                 corresponding variable.
+            IndexError: When the # of 'antecedent_fuzzy_set_names' is not equal
+                to the 'self.antecedents'.
         """
 
         if consequence_fuzzy_set_name not in self.consequence.fuzzy_sets.keys():
             raise KeyError("Cannot find '%s' in 'self.consequence'" %
                            consequence_fuzzy_set_name)
-        for name, var in zip(antecedent__fuzzy_set_names, self.antecedents):
+        if len(antecedent_fuzzy_set_names) != len(self.antecedents):
+            raise IndexError("The # of inputs must be the same with "
+                             "'self.antecedents': %d" % len(self.antecedents))
+        for name, var in zip(antecedent_fuzzy_set_names, self.antecedents):
             if name not in var.fuzzy_sets.keys():
                 raise KeyError("Connot find '%s' in '%s'" %
                                (name, var.fuzzy_sets.keys()))
-        self.rules[antecedent__fuzzy_set_names] = consequence_fuzzy_set_name
+        self.rules[antecedent_fuzzy_set_names] = consequence_fuzzy_set_name
 
     def singleton_result(self, *inputs):
-        # XXX: basically, OR(9 rules with AND(2 antecendents))
-        pass
+        def combi_var_outs(outs):
+            """Calculate the combined-vars result from each variable's
+            membership_function(crisp_input) by
+            `self.combination_var`.
+
+            Args:
+                outs (list(float)): a list contains each variable's
+                    membership_function(crisp_input).
+
+            Returns:
+                float: the result of combining every variable's crisp output.
+            """
+
+            if len(outs) == 2:
+                return self.combination_var(outs[0], outs[1])
+            return self.combination_var(outs[0], combi_var_outs(outs[1:]))
+
+        def combi_rule_outs(outs):
+            """Basically, this is the same as `combi_var_outs`, except that this
+            is for combining each rule's crisp output.
+
+            Args:
+                outs (list(float)): a list contains each rule's
+                    rule_membership_function(crisp_input).
+
+            Returns:
+                float: the result of combining every rule's crisp output.
+            """
+
+            if len(outs) == 2:
+                return self.combination_rule(outs[0], outs[1])
+            return self.combination_rule(outs[0], combi_rule_outs(outs[1:]))
+
+        def system_membershipf(crisp_input):
+            """Calculate the crisp output according to ALL rules and ALL
+            antecedents.
+
+            Args:
+                crisp_input (float): the crisp input to the WHOLE fuzzy system.
+
+            Returns:
+                float: the crisp output of the WHOLE fuzzy system.
+            """
+
+            return combi_rule_outs([f(crisp_input) for f in self.__rule_membershipfs])
+
+        if len(inputs) != len(self.antecedents):
+            raise IndexError("The # of inputs must be the same with "
+                             "'self.antecedents': %d" % len(self.antecedents))
+
+        self.__rule_membershipfs = []
+        # create the membership functions for each rule
+        for antecedent_names, consequence_name in self.rules.items():
+            antecedent_outs = []
+            # get the results from each antecedent's membership function with
+            # crisp inputs
+            for crisp, var, name in zip(inputs, self.antecedents, antecedent_names):
+                # save the results from each antecedent's membership function
+                antecedent_outs.append(var.fuzzy_sets[name](crisp))
+            # store the membership functions for each rule
+            print('varouts: %f' % combi_var_outs(antecedent_outs))
+            print(self.implication(combi_var_outs(antecedent_outs), self.consequence.fuzzy_sets[consequence_name])(-15))
+            self.__rule_membershipfs.append(
+                self.implication(combi_var_outs(antecedent_outs),
+                                 self.consequence.fuzzy_sets[consequence_name]))
+
+        # Defuzzify
+        wheel_min, wheel_max = -40, 40
+        wheel_range = wheel_max - wheel_min
+        result_fuzzy_area = result_fuzzy_weighted_area = 0
+        for crisp in np.linspace(wheel_min, wheel_max, wheel_range * 10, True):
+            system_crisp_out = system_membershipf(crisp)
+            result_fuzzy_area += system_crisp_out
+            result_fuzzy_weighted_area += system_crisp_out * crisp
+        return result_fuzzy_weighted_area / result_fuzzy_area
 
 
 class FuzzyVariable(object):
@@ -109,22 +189,44 @@ def drastic_sum(a, b):
     return 1
 
 
-def dienes_rescher_imp(a, b):
-    return max(1 - a, b)
+def dienes_rescher_imp(antecedent_out, consequence_membershipf):
+    def imp(consequence_crisp):
+        return max(1 - antecedent_out, consequence_membershipf(consequence_crisp))
+    return imp
 
 
-def lukasieweicz_imp(a, b):
-    return min(1, 1 - a + b)
+def lukasieweicz_imp(antecedent_out, consequence_membershipf):
+    def imp(consequence_crisp):
+        return min(1, 1 - antecedent_out + consequence_membershipf(consequence_crisp))
+    return imp
 
 
-def zadel_imp(a, b):
-    return max(min(a, b), 1 - a)
+def zadel_imp(antecedent_out, consequence_membershipf):
+    def imp(consequence_crisp):
+        return max(min(antecedent_out,
+                       consequence_membershipf(consequence_crisp)),
+                   1 - antecedent_out)
+    return imp
 
 
-def godel_imp(a, b):
-    if a <= b:
-        return 1
-    return b / a
+def godel_imp(antecedent_out, consequence_membershipf):
+    def imp(consequence_crisp):
+        if antecedent_out <= consequence_membershipf(consequence_crisp):
+            return 1
+        return consequence_membershipf(consequence_crisp) / antecedent_out
+    return imp
+
+
+def mandani_imp(antecedent_out, consequence_membershipf):
+    def imp(consequence_crisp):
+        return min(antecedent_out, consequence_membershipf(consequence_crisp))
+    return imp
+
+
+def product_imp(antecedent_out, consequence_membershipf):
+    def imp(consequence_crisp):
+        return operator.mul(antecedent_out, consequence_membershipf(consequence_crisp))
+    return imp
 
 
 def get_gaussianf(mean, sig, ascending, descending):

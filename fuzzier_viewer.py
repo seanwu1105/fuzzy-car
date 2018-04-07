@@ -30,13 +30,14 @@ class FuzzierViewer(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
 
     def add_curves(self, means, sds, ascendings, descendings):
-        self.__xmax = max(means) + 4 * sds[means.index(max(means))]
-        self.__xmin = min(means) - 4 * sds[means.index(min(means))]
+        self.__xmax = max(means) + 2 * sds[means.index(max(means))]
+        self.__xmin = min(means) - 2 * sds[means.index(min(means))]
         series_list = [QLineSeries() for _ in range(len(means))]
         for idx, param in enumerate(zip(means, sds, ascendings, descendings)):
             series_list[idx].append(self.__generate_curve(*param))
             self.chart.addSeries(series_list[idx])
         self.chart.createDefaultAxes()
+        self.chart.axisX().setTickCount(11)
         self.chart.removeAxis(self.chart.axisY())
 
     def remove_curves(self):
@@ -46,7 +47,8 @@ class FuzzierViewer(QFrame):
         if ascending and descending:
             return [QPointF(x, 0) for x in np.linspace(self.__xmin,
                                                        self.__xmax,
-                                                       10)]
+                                                       10,
+                                                       endpoint=True)]
         points = list()
         for x in np.linspace(self.__xmin, self.__xmax, 400):
             if ascending and x > mean:

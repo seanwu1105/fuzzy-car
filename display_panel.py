@@ -73,9 +73,9 @@ class DisplayFrame(QFrame):
     @pyqtSlot(list, float, float)
     def move_car(self, pos, angle, wheel_angle=0.0):
         self.simulator.paint_car(pos, angle)
-        self.car_position.setText("({:.5}, {:.5})".format(*pos))
-        self.car_angle.setText("{:.5}".format(angle))
-        self.wheel_angle.setText("{:.5}".format(wheel_angle))
+        self.car_position.setText("({:.7f}, {:.7f})".format(*pos))
+        self.car_angle.setText(str(angle))
+        self.wheel_angle.setText(str(wheel_angle))
 
     @pyqtSlot(list, list, list)
     def show_dists(self, pos, intersections, dists):

@@ -41,7 +41,7 @@ class Car(object):
             self.angle - math.degrees(math.asin(
                 math.sin(wheel_angle) / self.radius))) % 360
 
-    def dist_radar(self, direction):
+    def dist(self, direction):
         if direction == 'front':
             degree = self.angle % 360
         elif direction == 'left':

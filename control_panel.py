@@ -119,8 +119,22 @@ class ControlFrame(QFrame):
             "consequence": QRadioButton("Consequence")
         })
         self.fuzzyvar_setting_dist_front = FuzzierVarSetting()
+        self.fuzzyvar_setting_dist_front.small.mean.setValue(0)
+        self.fuzzyvar_setting_dist_front.medium.mean.setValue(10)
+        self.fuzzyvar_setting_dist_front.large.mean.setValue(20)
+
         self.fuzzyvar_setting_dist_lrdiff = FuzzierVarSetting()
+        self.fuzzyvar_setting_dist_lrdiff.small.mean.setValue(-10)
+        self.fuzzyvar_setting_dist_lrdiff.medium.mean.setValue(0)
+        self.fuzzyvar_setting_dist_lrdiff.large.mean.setValue(10)
+
         self.fuzzyvar_setting_consequence = FuzzierVarSetting()
+        self.fuzzyvar_setting_consequence.small.mean.setValue(-35)
+        self.fuzzyvar_setting_consequence.small.sd.setValue(20)
+        self.fuzzyvar_setting_consequence.medium.mean.setValue(0)
+        self.fuzzyvar_setting_consequence.medium.sd.setValue(20)
+        self.fuzzyvar_setting_consequence.large.mean.setValue(35)
+        self.fuzzyvar_setting_consequence.large.sd.setValue(20)
 
         inner_layout.addWidget(self.fuzzyvar_ui_selection)
         inner_layout.addWidget(self.fuzzyvar_setting_stack)
@@ -292,9 +306,8 @@ class FuzzierVarSetting(QFrame):
 
         layout.addRow(self.viewer)
 
-        self.small.mean.setValue(0)
-        self.medium.mean.setValue(5)
-        self.large.mean.setValue(10)
+        self.small.descending.setChecked(True)
+        self.large.ascending.setChecked(True)
 
         self.update_viewer()
 
@@ -345,7 +358,7 @@ class GaussianFuzzierSetting(QFrame):
 
         self.sd = QDoubleSpinBox()
         self.sd.setDecimals(3)
-        self.sd.setValue(2)
+        self.sd.setValue(5)
         self.sd.setMinimum(0.1)
         self.sd.setStatusTip("The standard deviation (sigma) value for "
                              "Gaussian function.")
