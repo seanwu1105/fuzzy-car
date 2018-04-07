@@ -136,8 +136,6 @@ class FuzzySystem(object):
                 # save the results from each antecedent's membership function
                 antecedent_outs.append(var.fuzzy_sets[name](crisp))
             # store the membership functions for each rule
-            print('varouts: %f' % combi_var_outs(antecedent_outs))
-            print(self.implication(combi_var_outs(antecedent_outs), self.consequence.fuzzy_sets[consequence_name])(-15))
             self.__rule_membershipfs.append(
                 self.implication(combi_var_outs(antecedent_outs),
                                  self.consequence.fuzzy_sets[consequence_name]))

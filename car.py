@@ -45,9 +45,9 @@ class Car(object):
         if direction == 'front':
             degree = self.angle % 360
         elif direction == 'left':
-            degree = (self.angle + 30) % 360
+            degree = (self.angle + 45) % 360
         else:
-            degree = (self.angle - 30) % 360
+            degree = (self.angle - 45) % 360
 
         radar = Line2D(self.pos, (self.pos[0] + math.cos(math.radians(degree)),
                                   self.pos[1] + math.sin(math.radians(degree))))
@@ -66,6 +66,12 @@ class Car(object):
         return (min(intersections, key=lambda item: dist(self.pos, item)),
                 min(dist(self.pos, i) for i in intersections))
 
+    @property
+    def is_collided(self):
+        for wall in self.walls:
+            if wall.point_dist(self.pos) <= self.radius:
+                return True
+        return False
 
 def dist(pt0, pt1):
     """Return the distance between pt0 and pt1."""

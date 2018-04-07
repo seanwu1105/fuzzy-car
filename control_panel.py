@@ -89,6 +89,8 @@ class ControlFrame(QFrame):
             "tc_ds": QRadioButton("Drastic Sum")
         })
 
+        self.implication_selections.set_selected('imp_m')
+
         self.implication_selections.setStatusTip("Choose the methods for fuzzy "
                                                  "implication.")
         self.combination_vars_selection.setStatusTip("Choose the methods of "
@@ -119,8 +121,8 @@ class ControlFrame(QFrame):
             "consequence": QRadioButton("Consequence")
         })
         self.fuzzyvar_setting_dist_front = FuzzierVarSetting()
-        self.fuzzyvar_setting_dist_front.small.mean.setValue(0)
-        self.fuzzyvar_setting_dist_front.medium.mean.setValue(10)
+        self.fuzzyvar_setting_dist_front.small.mean.setValue(5)
+        self.fuzzyvar_setting_dist_front.medium.mean.setValue(12)
         self.fuzzyvar_setting_dist_front.large.mean.setValue(20)
 
         self.fuzzyvar_setting_dist_lrdiff = FuzzierVarSetting()
@@ -129,11 +131,11 @@ class ControlFrame(QFrame):
         self.fuzzyvar_setting_dist_lrdiff.large.mean.setValue(10)
 
         self.fuzzyvar_setting_consequence = FuzzierVarSetting()
-        self.fuzzyvar_setting_consequence.small.mean.setValue(-35)
+        self.fuzzyvar_setting_consequence.small.mean.setValue(-20)
         self.fuzzyvar_setting_consequence.small.sd.setValue(20)
         self.fuzzyvar_setting_consequence.medium.mean.setValue(0)
         self.fuzzyvar_setting_consequence.medium.sd.setValue(20)
-        self.fuzzyvar_setting_consequence.large.mean.setValue(35)
+        self.fuzzyvar_setting_consequence.large.mean.setValue(20)
         self.fuzzyvar_setting_consequence.large.sd.setValue(20)
 
         inner_layout.addWidget(self.fuzzyvar_ui_selection)
@@ -156,8 +158,15 @@ class ControlFrame(QFrame):
 
         group_box = QGroupBox("Fuzzy Rules Setting")
         inner_layout = QVBoxLayout()
+
         self.rules_setting = FuzzyRulesSetting(
             [p for p in itertools.product(antecedents, repeat=2)])
+        self.rules_setting.set_consequence_fuzzysets((
+            'large', 'large', 'small',
+            'large', 'medium', 'small',
+            'large', 'medium', 'small'
+        ))
+
         inner_layout.addWidget(self.rules_setting)
         group_box.setLayout(inner_layout)
         self.__layout.addWidget(group_box)
@@ -179,12 +188,11 @@ class ControlFrame(QFrame):
 
     @pyqtSlot()
     def __change_map(self):
-        current_data = self.dataset[self.data_selector.currentText()]
-        self.__car = Car(current_data['start_pos'],
-                         current_data['start_angle'],
-                         3,
-                         current_data['route_edge'])
-        self.display_panel.change_map(current_data)
+        self.__current_data = self.dataset[self.data_selector.currentText()]
+        self.__car = Car(self.__current_data['start_pos'],
+                         self.__current_data['start_angle'],
+                         3, self.__current_data['route_edge'])
+        self.display_panel.change_map(self.__current_data)
 
     @pyqtSlot(str)
     def __print_console(self, text):
@@ -218,11 +226,18 @@ class ControlFrame(QFrame):
 
     @pyqtSlot()
     def __run(self):
-        self.__thread = RunCar(self.__car, self.__create_fuzzy_system())
+        self.__change_map()
+        self.__thread = RunCar(self.__car,
+                               self.__create_fuzzy_system(),
+                               (self.__current_data['end_area_lt'],
+                                self.__current_data['end_area_rb']))
+        self.stop_btn.clicked.connect(self.__thread.stop)
         self.__thread.started.connect(self.__init_widgets)
         self.__thread.finished.connect(self.__reset_widgets)
         self.__thread.sig_console.connect(self.__print_console)
         self.__thread.sig_car.connect(self.display_panel.move_car)
+        self.__thread.sig_car_collided.connect(
+            self.display_panel.show_car_collided)
         self.__thread.sig_dists.connect(self.display_panel.show_dists)
         self.__thread.start()
 
@@ -283,6 +298,9 @@ class RadioButtonSet(QFrame):
             if btn.isChecked():
                 self.sig_rbtn_changed.emit(name)
                 return name
+
+    def set_selected(self, name):
+        self.named_radiobtns[name].toggle()
 
 
 class FuzzierVarSetting(QFrame):
@@ -412,6 +430,12 @@ class FuzzyRulesSetting(QTableWidget):
         for antecendent, consequence_selection in self.rules_selections.items():
             rules[antecendent] = consequence_selection.currentText()
         return rules
+
+    def set_consequence_fuzzysets(self, name_list):
+        for name, consequence_selection in zip(name_list,
+                                               self.rules_selections.values()):
+            consequence_selection.setCurrentIndex(
+                consequence_selection.findText(name))
 
     def setDisabled(self, boolean):
         for consequence_selection in self.rules_selections.values():

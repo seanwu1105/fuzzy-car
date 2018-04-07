@@ -57,6 +57,10 @@ class CarPlot(FigureCanvas):
                                            ec='darkslategray')
         self.draw()
 
+    def paint_car_collided(self):
+        self.__car.set_color('tomato')
+        self.draw()
+
     def paint_dist(self, pos, intersections):
         for dist in self.__dists:
             try:

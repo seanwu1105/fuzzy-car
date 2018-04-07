@@ -1,6 +1,7 @@
 """ Define the line in 2D plane and its basic methods. """
 
 from decimal import Decimal
+import math
 
 import numpy as np
 
@@ -73,6 +74,12 @@ class Line2D(object):
             # exactly one solution
             return inter
 
+    def point_dist(self, pt):
+        return abs(float(self.x_coef) * pt[0]
+                   + float(self.y_coef * pt[1])
+                   - float(self.const)) / math.sqrt(self.x_coef ** 2
+                                                    + self.y_coef ** 2)
+
     @staticmethod
     def si2general(slope, y_intercept):
         """Convert the parameter of slope-intercept form into the one of general
@@ -93,7 +100,7 @@ class Line2D(object):
 class LineSeg2D(Line2D):
     def __init__(self, arg1, arg2):
         super().__init__(arg1, arg2)
-        self.ranging_pt1, self.ranging_pt2 = arg1, arg2
+        self.pt1, self.pt2 = arg1, arg2
         self.xmax, self.xmin = max(arg1[0], arg2[0]), min(arg1[0], arg2[0])
         self.ymax, self.ymin = max(arg1[1], arg2[1]), min(arg1[1], arg2[1])
 
@@ -102,7 +109,7 @@ class LineSeg2D(Line2D):
         if inter is None:
             return None
         if type(line) == Line2D:
-            if self.ranging_pt1[0] - self.ranging_pt2[0] == 0:
+            if self.pt1[0] - self.pt2[0] == 0:
                 # self is vertical line segment
                 if self.ymin <= inter[1] <= self.ymax:
                     return inter
@@ -112,12 +119,12 @@ class LineSeg2D(Line2D):
             else:
                 return None
         elif type(line) == LineSeg2D:
-            if self.ranging_pt1[0] - self.ranging_pt2[0] == 0:
+            if self.pt1[0] - self.pt2[0] == 0:
                 # vertical line segment (self)
                 if (self.ymin <= inter[1] <= self.ymax
                         and line.xmin <= inter[0] <= line.xmax):
                     return inter
-            elif line.ranging_pt1[0] - line.ranging_pt2[0] == 0:
+            elif line.ranging_pt1[0] - line.pt2[0] == 0:
                 # vertical line segment (line)
                 if (line.ymin <= inter[1] <= line.ymax
                         and self.xmin <= inter[0] <= self.xmax):
@@ -130,3 +137,20 @@ class LineSeg2D(Line2D):
         else:
             raise TypeError("'line' should be a instance of Line2D or "
                             "LineSeg2D")
+
+    def point_dist(self, pt):
+        seg_len = dist(self.pt1, self.pt2)
+        if seg_len == 0:
+            return dist(pt, self.pt1)
+        t = max(0, min(1, ((pt[0] - self.pt1[0])
+                           * (self.pt2[0] - self.pt1[0])
+                           + (pt[1] - self.pt1[1])
+                           * (self.pt2[1] - self.pt1[1]))
+                       / seg_len ** 2))
+        return dist(pt, (self.pt1[0] + t * (self.pt2[0] - self.pt1[0]),
+                         self.pt1[1] + t * (self.pt2[1] - self.pt1[1])))
+
+
+def dist(pt0, pt1):
+    """Return the distance between pt0 and pt1."""
+    return math.sqrt(sum(map(lambda a, b: (a - b)**2, pt0, pt1)))

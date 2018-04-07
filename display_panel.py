@@ -89,3 +89,7 @@ class DisplayFrame(QFrame):
             self.dist_lrdiff.setText('--')
         else:
             self.dist_lrdiff.setText(str(lrdiff))
+
+    @pyqtSlot()
+    def show_car_collided(self):
+        self.simulator.paint_car_collided()
