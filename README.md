@@ -2,6 +2,6 @@
 
 A sandbox practice for the fuzzy system.
 
-## Third-Party Sources
+## Third-Party Packages
 
 * 

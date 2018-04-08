@@ -148,6 +148,8 @@ class FuzzySystem(object):
             system_crisp_out = system_membershipf(crisp)
             result_fuzzy_area += system_crisp_out
             result_fuzzy_weighted_area += system_crisp_out * crisp
+        if result_fuzzy_area == 0:
+            return 0
         return result_fuzzy_weighted_area / result_fuzzy_area
 
 

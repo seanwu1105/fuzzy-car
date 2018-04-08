@@ -13,7 +13,7 @@ class GUIBase(QMainWindow):
 
     def __init__(self, dataset):
         super().__init__()
-        self.setWindowTitle("Fuzzy Car")
+        self.setWindowTitle("PEACE AMONG WORLDS")
         self.statusBar()
         self.setCentralWidget(BaseWidget(dataset))
 

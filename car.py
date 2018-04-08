@@ -57,8 +57,8 @@ class Car(object):
             if inter is not None:
                 if (0 < degree < 180 and inter[1] > self.pos[1]
                         or 180 < degree < 360 and inter[1] < self.pos[1]
-                        or degree == 0 and inter[0] > self.pos[0]
-                        or degree == 180 and inter[0] < self.pos[0]):
+                        or (90 > degree >= 0 or 360 > degree > 270) and inter[0] > self.pos[0]
+                        or 90 < degree < 270 and inter[0] < self.pos[0]):
                     intersections.append(inter)
 
         if not intersections:

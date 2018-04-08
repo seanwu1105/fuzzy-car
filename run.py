@@ -10,13 +10,14 @@ class RunCar(QThread):
     sig_car_collided = pyqtSignal()
     sig_dists = pyqtSignal(list, list, list)
 
-    def __init__(self, car, fuzzy_system, ending_area=None):
+    def __init__(self, car, fuzzy_system, ending_area=None, fps=20):
         super().__init__()
         self.car = car
         self.fuzzy_system = fuzzy_system
         self.abort = False
         self.ending_lt = ending_area[0]
         self.ending_rb = ending_area[1]
+        self.waiting_time = 1 / fps
 
     @pyqtSlot()
     def run(self):
@@ -24,7 +25,7 @@ class RunCar(QThread):
         while True:
             if self.abort:
                 break
-            time.sleep(0.05)
+            time.sleep(self.waiting_time)
             radars = tuple(self.car.dist(d) for d in radar_dir)
             self.sig_car.emit(self.car.pos, self.car.angle,
                               self.car.wheel_angle)

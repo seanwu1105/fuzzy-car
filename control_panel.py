@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                              QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
                              QLabel, QRadioButton, QTextEdit, QCheckBox,
                              QStackedWidget, QTableWidget, QTableWidgetItem,
-                             QHeaderView)
+                             QHeaderView, QSpinBox)
 
 from display_panel import DisplayFrame
 from fuzzier_viewer import FuzzierViewer
@@ -32,14 +32,14 @@ class ControlFrame(QFrame):
         self.setLayout(self.__layout)
         self.__layout.setContentsMargins(0, 0, 0, 0)
 
-        self.__set_case_combobox_ui()
+        self.__set_running_ui()
         self.__set_fuzzy_set_operation_types_ui()
         self.__set_fuzzy_variables_ui()
         self.__set_fuzzy_rules_ui()
         self.__set_console_ui()
 
-    def __set_case_combobox_ui(self):
-        group_box = QGroupBox("Case Data Selection")
+    def __set_running_ui(self):
+        group_box = QGroupBox("Running Options")
         inner_layout = QHBoxLayout()
         group_box.setLayout(inner_layout)
 
@@ -47,6 +47,13 @@ class ControlFrame(QFrame):
         self.data_selector.addItems(self.dataset.keys())
         self.data_selector.setStatusTip("Select the road map case.")
         self.data_selector.currentIndexChanged.connect(self.__change_map)
+
+        self.fps = QSpinBox()
+        self.fps.setMinimum(1)
+        self.fps.setMaximum(30)
+        self.fps.setValue(20)
+        self.fps.setStatusTip("The re-drawing rate for car simulator. High fps "
+                              "may cause the plot shows discontinuously.")
 
         self.start_btn = QPushButton("Run")
         self.start_btn.setStatusTip("Run the car.")
@@ -58,6 +65,8 @@ class ControlFrame(QFrame):
 
         self.__change_map()
         inner_layout.addWidget(self.data_selector, 1)
+        inner_layout.addWidget(QLabel("FPS:"))
+        inner_layout.addWidget(self.fps)
         inner_layout.addWidget(self.start_btn)
         inner_layout.addWidget(self.stop_btn)
 
@@ -131,11 +140,11 @@ class ControlFrame(QFrame):
         self.fuzzyvar_setting_dist_lrdiff.large.mean.setValue(10)
 
         self.fuzzyvar_setting_consequence = FuzzierVarSetting()
-        self.fuzzyvar_setting_consequence.small.mean.setValue(-20)
+        self.fuzzyvar_setting_consequence.small.mean.setValue(-10)
         self.fuzzyvar_setting_consequence.small.sd.setValue(20)
         self.fuzzyvar_setting_consequence.medium.mean.setValue(0)
         self.fuzzyvar_setting_consequence.medium.sd.setValue(20)
-        self.fuzzyvar_setting_consequence.large.mean.setValue(20)
+        self.fuzzyvar_setting_consequence.large.mean.setValue(10)
         self.fuzzyvar_setting_consequence.large.sd.setValue(20)
 
         inner_layout.addWidget(self.fuzzyvar_ui_selection)
@@ -158,13 +167,14 @@ class ControlFrame(QFrame):
 
         group_box = QGroupBox("Fuzzy Rules Setting")
         inner_layout = QVBoxLayout()
+        group_box.setStatusTip("Set the rules for the fuzzy system.")
 
         self.rules_setting = FuzzyRulesSetting(
             [p for p in itertools.product(antecedents, repeat=2)])
         self.rules_setting.set_consequence_fuzzysets((
-            'large', 'large', 'small',
-            'large', 'medium', 'small',
-            'large', 'medium', 'small'
+            'large', 'small', 'small',
+            'large', 'small', 'small',
+            'large', 'small', 'small'
         ))
 
         inner_layout.addWidget(self.rules_setting)
@@ -202,6 +212,7 @@ class ControlFrame(QFrame):
     def __init_widgets(self):
         self.start_btn.setDisabled(True)
         self.stop_btn.setEnabled(True)
+        self.fps.setDisabled(True)
         self.data_selector.setDisabled(True)
         self.implication_selections.setDisabled(True)
         self.combination_vars_selection.setDisabled(True)
@@ -215,6 +226,7 @@ class ControlFrame(QFrame):
     def __reset_widgets(self):
         self.start_btn.setEnabled(True)
         self.stop_btn.setDisabled(True)
+        self.fps.setEnabled(True)
         self.data_selector.setEnabled(True)
         self.implication_selections.setEnabled(True)
         self.combination_vars_selection.setEnabled(True)
@@ -230,7 +242,8 @@ class ControlFrame(QFrame):
         self.__thread = RunCar(self.__car,
                                self.__create_fuzzy_system(),
                                (self.__current_data['end_area_lt'],
-                                self.__current_data['end_area_rb']))
+                                self.__current_data['end_area_rb']),
+                                self.fps.value())
         self.stop_btn.clicked.connect(self.__thread.stop)
         self.__thread.started.connect(self.__init_widgets)
         self.__thread.finished.connect(self.__reset_widgets)
@@ -371,7 +384,7 @@ class GaussianFuzzierSetting(QFrame):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.mean = QDoubleSpinBox()
-        self.mean.setMinimum(-100)
+        self.mean.setRange(-100, 100)
         self.mean.setStatusTip("The mean (mu) value for Gaussian function.")
 
         self.sd = QDoubleSpinBox()
