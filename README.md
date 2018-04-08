@@ -1,4 +1,4 @@
-# Fuzzy Car Simulatior
+# Fuzzy Car Simulator
 
 A sandbox practice for the fuzzy system.
 
