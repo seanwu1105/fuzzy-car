@@ -1,5 +1,6 @@
 """ Define the contents of control panel. """
 
+import collections
 import itertools
 
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
@@ -77,28 +78,30 @@ class ControlFrame(QFrame):
         inner_layout = QFormLayout()
         group_box.setLayout(inner_layout)
 
-        self.implication_selections = RadioButtonSet({
-            "imp_dr": QRadioButton("Dienes-Rescher"),
-            "imp_l": QRadioButton("Lukasieweicz"),
-            "imp_z": QRadioButton("Zadel"),
-            "imp_g": QRadioButton("Godel"),
-            "imp_m": QRadioButton("Mamdani"),
-            "imp_p": QRadioButton("Product")
-        })
-        self.combination_vars_selection = RadioButtonSet({
-            "tn_min": QRadioButton("Minimum"),
-            "tn_ap": QRadioButton("Algebraic Product"),
-            "tn_bp": QRadioButton("Bounded Product"),
-            "tn_dp": QRadioButton("Drastic Product")
-        })
-        self.combination_rules_selection = RadioButtonSet({
-            "tc_max": QRadioButton("Maximum"),
-            "tc_as": QRadioButton("Algebraic Sum"),
-            "tc_bs": QRadioButton("Bounded Sum"),
-            "tc_ds": QRadioButton("Drastic Sum")
-        })
+        self.implication_selections = RadioButtonSet([
+            ("imp_dr", QRadioButton("Dienes-Rescher")),
+            ("imp_l", QRadioButton("Lukasieweicz")),
+            ("imp_z", QRadioButton("Zadel")),
+            ("imp_g", QRadioButton("Godel")),
+            ("imp_m", QRadioButton("Mamdani")),
+            ("imp_p", QRadioButton("Product"))
+        ])
+        self.combination_vars_selection = RadioButtonSet([
+            ("tn_min", QRadioButton("Minimum")),
+            ("tn_ap", QRadioButton("Algebraic Product")),
+            ("tn_bp", QRadioButton("Bounded Product")),
+            ("tn_dp", QRadioButton("Drastic Product"))
+        ])
+        self.combination_rules_selection = RadioButtonSet([
+            ("tc_max", QRadioButton("Maximum")),
+            ("tc_as", QRadioButton("Algebraic Sum")),
+            ("tc_bs", QRadioButton("Bounded Sum")),
+            ("tc_ds", QRadioButton("Drastic Sum"))
+        ])
 
         self.implication_selections.set_selected('imp_m')
+        self.combination_vars_selection.set_selected('tn_min')
+        self.combination_rules_selection.set_selected('tc_max')
 
         self.implication_selections.setStatusTip("Choose the methods for fuzzy "
                                                  "implication.")
@@ -124,11 +127,11 @@ class ControlFrame(QFrame):
                                "variable.")
         inner_layout = QVBoxLayout()
         self.fuzzyvar_setting_stack = QStackedWidget()
-        self.fuzzyvar_ui_selection = RadioButtonSet({
-            "front": QRadioButton("Front Distance Radar"),
-            "lrdiff": QRadioButton("(Left-Right) Distance Radar"),
-            "consequence": QRadioButton("Consequence")
-        })
+        self.fuzzyvar_ui_selection = RadioButtonSet([
+            ("front", QRadioButton("Front Distance Radar")),
+            ("lrdiff", QRadioButton("(Left-Right) Distance Radar")),
+            ("consequence", QRadioButton("Consequence"))
+        ])
         self.fuzzyvar_setting_dist_front = FuzzierVarSetting()
         self.fuzzyvar_setting_dist_front.small.mean.setValue(5)
         self.fuzzyvar_setting_dist_front.medium.mean.setValue(12)
@@ -243,7 +246,7 @@ class ControlFrame(QFrame):
                                self.__create_fuzzy_system(),
                                (self.__current_data['end_area_lt'],
                                 self.__current_data['end_area_rb']),
-                                self.fps.value())
+                               self.fps.value())
         self.stop_btn.clicked.connect(self.__thread.stop)
         self.__thread.started.connect(self.__init_widgets)
         self.__thread.finished.connect(self.__reset_widgets)
@@ -299,7 +302,7 @@ class RadioButtonSet(QFrame):
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
-        self.named_radiobtns = named_radiobtns
+        self.named_radiobtns = collections.OrderedDict(named_radiobtns)
         next(iter(self.named_radiobtns.values())).toggle()
         for radiobtn in self.named_radiobtns.values():
             radiobtn.toggled.connect(self.get_selected_name)
