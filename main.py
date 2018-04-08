@@ -9,6 +9,7 @@ GitLab: https://gitlab.com/GLaDOS1105/fuzzy-car
 
 """
 
+import collections
 import pathlib
 import sys
 
@@ -43,7 +44,7 @@ def read_case_file(folderpath='data'):
             "end_area_rb": contents[2],  # ending area - right-bottom
             "route_edge": contents[3:]
         }
-    return dataset
+    return collections.OrderedDict(sorted(dataset.items()))
 
 
 if __name__ == '__main__':

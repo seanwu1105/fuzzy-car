@@ -3,7 +3,7 @@
 import collections
 import itertools
 
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import Qt, QUrl, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                              QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
@@ -16,6 +16,7 @@ from fuzzier_viewer import FuzzierViewer
 from fuzzy_system import FuzzySystem, FuzzyVariable, get_gaussianf
 from car import Car
 from run import RunCar
+import src
 
 
 class ControlFrame(QFrame):
@@ -398,10 +399,10 @@ class GaussianFuzzierSetting(QFrame):
                              "Gaussian function.")
 
         self.ascending = QCheckBox()
-        self.ascending.setIcon(QIcon('icons/ascending_icon.png'))
+        self.ascending.setIcon(QIcon(':/icons/ascending_icon.png'))
         self.ascending.setStatusTip("Make the fuzzier strictly ascending.")
         self.descending = QCheckBox()
-        self.descending.setIcon(QIcon('icons/descending_icon.png'))
+        self.descending.setIcon(QIcon(':/icons/descending_icon.png'))
         self.descending.setStatusTip("Make the fuzzier strictly descending.")
 
         layout.addWidget(QLabel("Mean"))

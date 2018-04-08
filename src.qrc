@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>icons/ascending_icon.png</file>
+    <file>icons/descending_icon.png</file>
+</qresource>
+</RCC>
