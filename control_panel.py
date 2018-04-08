@@ -34,13 +34,13 @@ class ControlFrame(QFrame):
         self.setLayout(self.__layout)
         self.__layout.setContentsMargins(0, 0, 0, 0)
 
-        self.__set_running_ui()
+        self.__set_running_options_ui()
         self.__set_fuzzy_set_operation_types_ui()
         self.__set_fuzzy_variables_ui()
         self.__set_fuzzy_rules_ui()
         self.__set_console_ui()
 
-    def __set_running_ui(self):
+    def __set_running_options_ui(self):
         group_box = QGroupBox("Running Options")
         inner_layout = QHBoxLayout()
         group_box.setLayout(inner_layout)
@@ -426,7 +426,7 @@ class FuzzyRulesSetting(QTableWidget):
         self.setVerticalHeaderLabels(
             ['Front Dist.', '(Left-Right) Dist.', 'Consequence'])
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.rules_selections = dict()
+        self.rules_selections = collections.OrderedDict()
 
         for col, antecedents in enumerate(antecedent_product):
             for row, antecedent in enumerate(antecedents):

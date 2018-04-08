@@ -32,7 +32,7 @@ class RunCar(QThread):
             self.sig_dists.emit(self.car.pos, *map(list, zip(*radars)))
 
             if (self.ending_lt[0] <= self.car.pos[0] <= self.ending_rb[0]
-                and self.ending_lt[1] >= self.car.pos[1] >= self.ending_rb[1]):
+                    and self.ending_lt[1] >= self.car.pos[1] >= self.ending_rb[1]):
                 self.sig_console.emit("Note: Car has arrived at the ending "
                                       "area.")
                 self.abort = True
@@ -53,7 +53,8 @@ class RunCar(QThread):
                                       "since the distance type error.")
                 break
 
-            self.car.move(self.fuzzy_system.singleton_result(dists[0], dists[1] - dists[2]))
+            self.car.move(self.fuzzy_system.singleton_result(
+                dists[0], dists[1] - dists[2]))
 
     @pyqtSlot()
     def stop(self):
