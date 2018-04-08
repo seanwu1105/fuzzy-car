@@ -144,11 +144,11 @@ class ControlFrame(QFrame):
         self.fuzzyvar_setting_dist_lrdiff.large.mean.setValue(10)
 
         self.fuzzyvar_setting_consequence = FuzzierVarSetting()
-        self.fuzzyvar_setting_consequence.small.mean.setValue(-10)
+        self.fuzzyvar_setting_consequence.small.mean.setValue(-12)
         self.fuzzyvar_setting_consequence.small.sd.setValue(20)
         self.fuzzyvar_setting_consequence.medium.mean.setValue(0)
         self.fuzzyvar_setting_consequence.medium.sd.setValue(20)
-        self.fuzzyvar_setting_consequence.large.mean.setValue(10)
+        self.fuzzyvar_setting_consequence.large.mean.setValue(12)
         self.fuzzyvar_setting_consequence.large.sd.setValue(20)
 
         inner_layout.addWidget(self.fuzzyvar_ui_selection)
