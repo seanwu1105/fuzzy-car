@@ -20,7 +20,7 @@ import gui_base
 
 def main():
     """ Create GUI application and read testing case data. """
-
+    sys.argv += ['--style', 'fusion']
     app = QApplication(sys.argv)
     window = gui_base.GUIBase(read_case_file())
     window.show()
