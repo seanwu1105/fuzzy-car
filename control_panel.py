@@ -50,7 +50,7 @@ class ControlFrame(QFrame):
 
         self.fps = QSpinBox()
         self.fps.setMinimum(1)
-        self.fps.setMaximum(30)
+        self.fps.setMaximum(60)
         self.fps.setValue(20)
         self.fps.setStatusTip("The re-drawing rate for car simulator. High fps "
                               "may cause the plot shows discontinuously.")
