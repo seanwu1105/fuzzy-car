@@ -2,6 +2,8 @@
 
 A sandbox practice for the fuzzy system.
 
+<img src="https://i.imgur.com/PvT6qlJ.gifv">
+
 ## Installation
 
 1. Download this project
