@@ -1,3 +1,5 @@
+"""Define the `Car` class in the simulator."""
+
 import math
 
 import numpy as np
@@ -29,6 +31,14 @@ class Car(object):
                 LineSeg2D(wall_points[idx], wall_points[idx + 1]))
 
     def move(self, wheel_angle):
+        """Make the car move to mext position according to the current wheel
+        angle.
+
+        Args:
+            wheel_angle (float): the current wheel angle which should be in
+                [-40, 40].
+        """
+
         self.wheel_angle = max(min(wheel_angle, 40), -40)
         wheel_angle = math.radians(self.wheel_angle)
         car_angle = math.radians(self.angle)
@@ -42,6 +52,16 @@ class Car(object):
                 math.sin(wheel_angle) / self.radius))) % 360
 
     def dist(self, direction):
+        """Get the distance between car and any closest wall.
+
+        Args:
+            direction (string): Can take 'front', 'left' and 'right', determine
+                which distance of radar.
+
+        Returns:
+            tuple: (distance, intersection).
+        """
+
         if direction == 'front':
             degree = self.angle % 360
         elif direction == 'left':
@@ -68,10 +88,17 @@ class Car(object):
 
     @property
     def is_collided(self):
+        """Check the car if it is collided against any walls or not.
+
+        Returns:
+            boolean
+        """
+
         for wall in self.walls:
             if wall.point_dist(self.pos) <= self.radius:
                 return True
         return False
+
 
 def dist(pt0, pt1):
     """Return the distance between pt0 and pt1."""

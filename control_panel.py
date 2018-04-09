@@ -3,7 +3,7 @@
 import collections
 import itertools
 
-from PyQt5.QtCore import Qt, QUrl, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                              QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
@@ -16,7 +16,7 @@ from fuzzier_viewer import FuzzierViewer
 from fuzzy_system import FuzzySystem, FuzzyVariable, get_gaussianf
 from car import Car
 from run import RunCar
-import src
+import src  # for pyinstaller to import the icons automatically
 
 
 class ControlFrame(QFrame):
@@ -242,7 +242,9 @@ class ControlFrame(QFrame):
 
     @pyqtSlot()
     def __run(self):
+        # reset the map
         self.__change_map()
+        # create a QThread
         self.__thread = RunCar(self.__car,
                                self.__create_fuzzy_system(),
                                (self.__current_data['end_area_lt'],
@@ -259,6 +261,7 @@ class ControlFrame(QFrame):
         self.__thread.start()
 
     def __create_fuzzy_system(self):
+        """Create a fuzzy system with the parameter given in control panel."""
         dist_front = FuzzyVariable()
         dist_front.add_membershipf(
             'small', get_gaussianf(*self.fuzzyvar_setting_dist_front.small.get_values()))
@@ -296,6 +299,13 @@ class ControlFrame(QFrame):
 
 
 class RadioButtonSet(QFrame):
+    """A set of QRadioButton.
+
+    Args:
+        named_radiobtns (dict): a dictionary containing names (as key) for each
+            QRadioButton. Use OrderedDict if you want to keep the set in order.
+    """
+
     sig_rbtn_changed = pyqtSignal(str)
 
     def __init__(self, named_radiobtns):
@@ -311,12 +321,14 @@ class RadioButtonSet(QFrame):
 
     @pyqtSlot()
     def get_selected_name(self):
+        """Get which radio button is selected."""
         for name, btn in self.named_radiobtns.items():
             if btn.isChecked():
                 self.sig_rbtn_changed.emit(name)
                 return name
 
     def set_selected(self, name):
+        """Set a radio button be selected by given name."""
         self.named_radiobtns[name].toggle()
 
 
@@ -449,6 +461,8 @@ class FuzzyRulesSetting(QTableWidget):
         return rules
 
     def set_consequence_fuzzysets(self, name_list):
+        """Set the consequence fuzzy sets in ORDER since the rules selections is
+        a OrderedDict."""
         for name, consequence_selection in zip(name_list,
                                                self.rules_selections.values()):
             consequence_selection.setCurrentIndex(

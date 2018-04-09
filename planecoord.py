@@ -55,8 +55,7 @@ class Line2D(object):
         calculating the result from `Decimal` to `float`.
 
         Args:
-            line1 (Line2D): The first 2D line.
-            line2 (Line2D): The second 2D line.
+            line (Line2D): The 2D line to calculate with.
 
         Returns:
             ndarray: The point of intersection.
@@ -75,6 +74,14 @@ class Line2D(object):
             return inter
 
     def point_dist(self, pt):
+        """Get the distance between a point and self.
+
+        Args:
+            pt (tuple): the target point.
+
+        Returns:
+            float: the distance between the given point and self (line).
+        """
         return abs(float(self.x_coef) * pt[0]
                    + float(self.y_coef * pt[1])
                    - float(self.const)) / math.sqrt(self.x_coef ** 2
@@ -105,6 +112,20 @@ class LineSeg2D(Line2D):
         self.ymax, self.ymin = max(arg1[1], arg2[1]), min(arg1[1], arg2[1])
 
     def intersection(self, line):
+        """Get the point of intersection between self (a line segment) and a
+        line or line segment. May loss precision while calculating the result
+        from `Decimal` to `float`.
+
+        Args:
+            line (Line2D or LineSeg2D): The 2D line or line segment to calculate
+                with.
+
+        Returns:
+            ndarray: The point of intersection.
+
+        Raises:
+            TypeError: line should only be Line2D or LineSeg2D.
+        """
         inter = super().intersection(line)
         if inter is None:
             return None
@@ -139,6 +160,15 @@ class LineSeg2D(Line2D):
                             "LineSeg2D")
 
     def point_dist(self, pt):
+        """Get the distance between a point and self.
+
+        Args:
+            pt (tuple): the target point.
+
+        Returns:
+            float: the distance between the given point and self (line segment).
+        """
+
         seg_len = dist(self.pt1, self.pt2)
         if seg_len == 0:
             return dist(pt, self.pt1)

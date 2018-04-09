@@ -21,7 +21,6 @@ class FuzzierViewer(QFrame):
         self.chart.layout().setContentsMargins(0, 0, 0, 0)
         self.chart.setMargins(QMargins())
         self.chart.setBackgroundRoundness(0)
-        
 
         chart_view = QChartView(self.chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
