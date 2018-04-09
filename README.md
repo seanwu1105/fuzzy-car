@@ -2,7 +2,7 @@
 
 A sandbox practice for the fuzzy system.
 
-<img src="https://i.imgur.com/PvT6qlJ.gifv">
+<img src="preview.gif">
 
 ## Installation
 
