@@ -2,9 +2,7 @@
 
 A sandbox practice for the fuzzy system.
 
-<video autoplay preload loop="loop">
-    <source src="preview.mp4" type="video/mp4">
-</video>
+![Preview Video](preview.mp4)
 
 ## Third-Party Packages
 
