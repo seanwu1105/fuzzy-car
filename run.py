@@ -9,6 +9,7 @@ class RunCar(QThread):
     sig_car = pyqtSignal(list, float, float)
     sig_car_collided = pyqtSignal()
     sig_dists = pyqtSignal(list, list, list)
+    sig_results = pyqtSignal(list)
 
     def __init__(self, car, fuzzy_system, ending_area=None, fps=20):
         super().__init__()
@@ -21,6 +22,7 @@ class RunCar(QThread):
 
     @pyqtSlot()
     def run(self):
+        results = list()
         radar_dir = ['front', 'left', 'right']
         while True:
             if self.abort:
@@ -53,8 +55,20 @@ class RunCar(QThread):
                                       "since the distance type error.")
                 break
 
-            self.car.move(self.fuzzy_system.singleton_result(
-                dists[0], dists[1] - dists[2]))
+            next_wheel_angle = self.fuzzy_system.singleton_result(
+                dists[0], dists[1] - dists[2])
+
+            results.append({
+                'x': self.car.pos[0],
+                'y': self.car.pos[1],
+                'front_dist': radars[0][1],
+                'right_dist': radars[2][1],
+                'left_dist': radars[1][1],
+                'wheel_angle': next_wheel_angle
+            })
+
+            self.car.move(next_wheel_angle)
+        self.sig_results.emit(results)
 
     @pyqtSlot()
     def stop(self):

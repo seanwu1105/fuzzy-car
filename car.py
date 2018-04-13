@@ -59,7 +59,7 @@ class Car(object):
                 which distance of radar.
 
         Returns:
-            tuple: (distance, intersection).
+            tuple: (intersection, distance).
         """
 
         if direction == 'front':

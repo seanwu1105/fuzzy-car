@@ -2,6 +2,7 @@
 
 import collections
 import itertools
+import os
 
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QIcon
@@ -9,7 +10,7 @@ from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                              QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
                              QLabel, QRadioButton, QTextEdit, QCheckBox,
                              QStackedWidget, QTableWidget, QTableWidgetItem,
-                             QHeaderView, QSpinBox)
+                             QHeaderView, QSpinBox, QFileDialog)
 
 from display_panel import DisplayFrame
 from fuzzier_viewer import FuzzierViewer
@@ -65,12 +66,20 @@ class ControlFrame(QFrame):
         self.stop_btn.setStatusTip("Force the simulation stop running.")
         self.stop_btn.setDisabled(True)
 
+        self.save_btn = QPushButton()
+        self.save_btn.setIcon(QIcon(':/icons/save_icon.png'))
+        self.save_btn.setStatusTip("Save every details for the last time "
+                                   "running.")
+        self.save_btn.clicked.connect(self.__save_results)
+        self.save_btn.setDisabled(True)
+
         self.__change_map()
         inner_layout.addWidget(self.data_selector, 1)
         inner_layout.addWidget(QLabel("FPS:"))
         inner_layout.addWidget(self.fps)
         inner_layout.addWidget(self.start_btn)
         inner_layout.addWidget(self.stop_btn)
+        inner_layout.addWidget(self.save_btn)
 
         self.__layout.addWidget(group_box)
 
@@ -127,7 +136,8 @@ class ControlFrame(QFrame):
                             self.combination_vars_selections)
         inner_layout.addRow(QLabel("Combination of Rules:"),
                             self.combination_rules_selections)
-        inner_layout.addRow(QLabel("Defuzzifier:"), self.defuzzifier_selections)
+        inner_layout.addRow(QLabel("Defuzzifier:"),
+                            self.defuzzifier_selections)
 
         self.__layout.addWidget(group_box)
 
@@ -221,15 +231,43 @@ class ControlFrame(QFrame):
     def __print_console(self, text):
         self.__console.append(text)
 
+    @pyqtSlot(list)
+    def __get_results(self, results):
+        self.results = results
+
+    @pyqtSlot()
+    def __save_results(self):
+        save_dir = QFileDialog.getExistingDirectory(self,
+                                                    'Select Saving Directory')
+        file4d_filepath = os.path.join(save_dir, 'train4D.txt')
+        file6d_filepath = os.path.join(save_dir, 'train6D.txt')
+        with open(file4d_filepath, 'w') as file4d:
+            for result in self.results:
+                file4d.write('{:.7f} {:.7f} {:.7f} {:.7f}\n'.format(
+                    result['front_dist'], result['right_dist'],
+                    result['left_dist'], result['wheel_angle']
+                ))
+        with open(file6d_filepath, 'w') as file6d:
+            for result in self.results:
+                file6d.write('{:.7f} {:.7f} {:.7f} {:.7f} {:.7f} {:.7f}\n'.format(
+                    result['x'], result['y'],
+                    result['front_dist'], result['right_dist'],
+                    result['left_dist'], result['wheel_angle']
+                ))
+        self.__print_console('Note: Detailed results have been saved in both'
+                             ' "%s" and "%s".' % (file4d_filepath, file6d_filepath))
+
     @pyqtSlot()
     def __init_widgets(self):
         self.start_btn.setDisabled(True)
         self.stop_btn.setEnabled(True)
+        self.save_btn.setDisabled(True)
         self.fps.setDisabled(True)
         self.data_selector.setDisabled(True)
         self.implication_selections.setDisabled(True)
         self.combination_vars_selections.setDisabled(True)
         self.combination_rules_selections.setDisabled(True)
+        self.defuzzifier_selections.setDisabled(True)
         self.fuzzyvar_setting_dist_front.setDisabled(True)
         self.fuzzyvar_setting_dist_lrdiff.setDisabled(True)
         self.fuzzyvar_setting_consequence.setDisabled(True)
@@ -239,11 +277,13 @@ class ControlFrame(QFrame):
     def __reset_widgets(self):
         self.start_btn.setEnabled(True)
         self.stop_btn.setDisabled(True)
+        self.save_btn.setEnabled(True)
         self.fps.setEnabled(True)
         self.data_selector.setEnabled(True)
         self.implication_selections.setEnabled(True)
         self.combination_vars_selections.setEnabled(True)
         self.combination_rules_selections.setEnabled(True)
+        self.defuzzifier_selections.setEnabled(True)
         self.fuzzyvar_setting_dist_front.setEnabled(True)
         self.fuzzyvar_setting_dist_lrdiff.setEnabled(True)
         self.fuzzyvar_setting_consequence.setEnabled(True)
@@ -267,6 +307,7 @@ class ControlFrame(QFrame):
         self.__thread.sig_car_collided.connect(
             self.display_panel.show_car_collided)
         self.__thread.sig_dists.connect(self.display_panel.show_dists)
+        self.__thread.sig_results.connect(self.__get_results)
         self.__thread.start()
 
     def __create_fuzzy_system(self):
