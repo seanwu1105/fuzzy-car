@@ -91,7 +91,7 @@ class Car(object):
         """Check the car if it is collided against any walls or not.
 
         Returns:
-            boolean
+            boolean: if the car is collided.
         """
 
         for wall in self.walls:
