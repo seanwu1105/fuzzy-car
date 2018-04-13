@@ -2,8 +2,7 @@
 
 
 from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtWidgets import (QFormLayout, QVBoxLayout, QGroupBox,
-                             QFrame, QLabel)
+from PyQt5.QtWidgets import QFormLayout, QVBoxLayout, QGroupBox, QFrame, QLabel
 
 from plot import CarPlot
 

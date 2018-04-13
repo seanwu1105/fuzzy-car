@@ -87,38 +87,47 @@ class ControlFrame(QFrame):
             ("imp_m", QRadioButton("Mamdani")),
             ("imp_p", QRadioButton("Product"))
         ])
-        self.combination_vars_selection = RadioButtonSet([
+        self.combination_vars_selections = RadioButtonSet([
             ("tn_min", QRadioButton("Minimum")),
             ("tn_ap", QRadioButton("Algebraic Product")),
             ("tn_bp", QRadioButton("Bounded Product")),
             ("tn_dp", QRadioButton("Drastic Product"))
         ])
-        self.combination_rules_selection = RadioButtonSet([
+        self.combination_rules_selections = RadioButtonSet([
             ("tc_max", QRadioButton("Maximum")),
             ("tc_as", QRadioButton("Algebraic Sum")),
             ("tc_bs", QRadioButton("Bounded Sum")),
             ("tc_ds", QRadioButton("Drastic Sum"))
         ])
+        self.defuzzifier_selections = RadioButtonSet([
+            ("gravity_center", QRadioButton("Center of Gravity")),
+            ("maxima_mean", QRadioButton("Mean of Maxima")),
+            ("modified_maxima_mean", QRadioButton("Modified Mean of Maxima"))
+        ])
 
         self.implication_selections.set_selected('imp_m')
-        self.combination_vars_selection.set_selected('tn_min')
-        self.combination_rules_selection.set_selected('tc_max')
+        self.combination_vars_selections.set_selected('tn_min')
+        self.combination_rules_selections.set_selected('tc_max')
+        self.defuzzifier_selections.set_selected('gravity_center')
 
-        self.implication_selections.setStatusTip("Choose the methods for fuzzy "
+        self.implication_selections.setStatusTip("Choose the method for fuzzy "
                                                  "implication.")
-        self.combination_vars_selection.setStatusTip("Choose the methods of "
-                                                     "combination of multiple "
-                                                     "fuzzy variables.")
-        self.combination_rules_selection.setStatusTip("Choose the methods of "
-                                                      "combination of "
-                                                      "multiple fuzzy rules.")
+        self.combination_vars_selections.setStatusTip("Choose the method of "
+                                                      "combination of multiple "
+                                                      "fuzzy variables.")
+        self.combination_rules_selections.setStatusTip("Choose the method of "
+                                                       "combination of "
+                                                       "multiple fuzzy rules.")
+        self.defuzzifier_selections.setStatusTip("Choose the method for the "
+                                                 "defuzifier.")
 
         inner_layout.addRow(QLabel("Implication:"),
                             self.implication_selections)
         inner_layout.addRow(QLabel("Combination of Variables:"),
-                            self.combination_vars_selection)
+                            self.combination_vars_selections)
         inner_layout.addRow(QLabel("Combination of Rules:"),
-                            self.combination_rules_selection)
+                            self.combination_rules_selections)
+        inner_layout.addRow(QLabel("Defuzzifier:"), self.defuzzifier_selections)
 
         self.__layout.addWidget(group_box)
 
@@ -219,8 +228,8 @@ class ControlFrame(QFrame):
         self.fps.setDisabled(True)
         self.data_selector.setDisabled(True)
         self.implication_selections.setDisabled(True)
-        self.combination_vars_selection.setDisabled(True)
-        self.combination_rules_selection.setDisabled(True)
+        self.combination_vars_selections.setDisabled(True)
+        self.combination_rules_selections.setDisabled(True)
         self.fuzzyvar_setting_dist_front.setDisabled(True)
         self.fuzzyvar_setting_dist_lrdiff.setDisabled(True)
         self.fuzzyvar_setting_consequence.setDisabled(True)
@@ -233,8 +242,8 @@ class ControlFrame(QFrame):
         self.fps.setEnabled(True)
         self.data_selector.setEnabled(True)
         self.implication_selections.setEnabled(True)
-        self.combination_vars_selection.setEnabled(True)
-        self.combination_rules_selection.setEnabled(True)
+        self.combination_vars_selections.setEnabled(True)
+        self.combination_rules_selections.setEnabled(True)
         self.fuzzyvar_setting_dist_front.setEnabled(True)
         self.fuzzyvar_setting_dist_lrdiff.setEnabled(True)
         self.fuzzyvar_setting_consequence.setEnabled(True)
@@ -289,8 +298,8 @@ class ControlFrame(QFrame):
         fuzzy_system = FuzzySystem(consequence, dist_front, dist_lrdiff)
         fuzzy_system.set_operation_types(
             self.implication_selections.get_selected_name(),
-            self.combination_vars_selection.get_selected_name(),
-            self.combination_rules_selection.get_selected_name())
+            self.combination_vars_selections.get_selected_name(),
+            self.combination_rules_selections.get_selected_name())
 
         for antecendent_names, consequence_name in self.rules_setting.rules.items():
             fuzzy_system.add_rule(consequence_name, antecendent_names)

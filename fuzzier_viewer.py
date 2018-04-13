@@ -1,3 +1,5 @@
+"""Define the previewer for the fuzzier variables, implemented with QtChart."""
+
 import math
 
 import numpy as np
@@ -10,7 +12,7 @@ from PyQt5.QtChart import QChart, QChartView, QLineSeries
 class FuzzierViewer(QFrame):
     def __init__(self):
         super().__init__()
-        self.setMinimumHeight(55)
+        self.setMinimumHeight(60)
         layout = QHBoxLayout()
         self.setLayout(layout)
         self.setStatusTip("Display the fuzziers in plot.")
