@@ -299,7 +299,8 @@ class ControlFrame(QFrame):
         fuzzy_system.set_operation_types(
             self.implication_selections.get_selected_name(),
             self.combination_vars_selections.get_selected_name(),
-            self.combination_rules_selections.get_selected_name())
+            self.combination_rules_selections.get_selected_name(),
+            self.defuzzifier_selections.get_selected_name())
 
         for antecendent_names, consequence_name in self.rules_setting.rules.items():
             fuzzy_system.add_rule(consequence_name, antecendent_names)

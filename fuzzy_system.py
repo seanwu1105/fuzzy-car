@@ -13,7 +13,8 @@ class FuzzySystem(object):
     def set_operation_types(self,
                             implication='imp_m',
                             combination_vars='tn_min',
-                            combination_rules='tc_max'):
+                            combination_rules='tc_max',
+                            defuzzifier='gravity_center'):
 
         if implication == 'imp_dr':
             self.implication = dienes_rescher_imp
@@ -45,6 +46,13 @@ class FuzzySystem(object):
             self.combination_rule = bounded_sum
         else:  # tc_ds
             self.combination_rule = drastic_sum
+
+        if defuzzifier == 'gravity_center':
+            self.defuzzifier = gravity_center_defuzzifier
+        elif defuzzifier == 'maxima_mean':
+            self.defuzzifier = maxima_mean_defuzzifier
+        elif defuzzifier == 'modified_maxima_mean':
+            self.defuzzifier = modified_maxima_mean_defuzzifier
 
     def add_rule(self, consequence_fuzzy_set_name, antecedent_fuzzy_set_names):
         """Add a fuzzy rule.
@@ -141,16 +149,7 @@ class FuzzySystem(object):
                                  self.consequence.fuzzy_sets[consequence_name]))
 
         # Defuzzify
-        wheel_min, wheel_max = -40, 40
-        wheel_range = wheel_max - wheel_min
-        result_fuzzy_area = result_fuzzy_weighted_area = 0
-        for crisp in np.linspace(wheel_min, wheel_max, wheel_range * 10, True):
-            system_crisp_out = system_membershipf(crisp)
-            result_fuzzy_area += system_crisp_out
-            result_fuzzy_weighted_area += system_crisp_out * crisp
-        if result_fuzzy_area == 0:
-            return 0
-        return result_fuzzy_weighted_area / result_fuzzy_area
+        return self.defuzzifier(system_membershipf)
 
 
 class FuzzyVariable(object):
@@ -227,6 +226,36 @@ def product_imp(antecedent_out, consequence_membershipf):
     def imp(consequence_crisp):
         return operator.mul(antecedent_out, consequence_membershipf(consequence_crisp))
     return imp
+
+
+def gravity_center_defuzzifier(system_membershipf, support_min=-40, support_max=40):
+    support_range = support_max - support_min
+    result_fuzzy_area = result_fuzzy_weighted_area = 0
+    for crisp in np.linspace(support_min, support_max, support_range * 10, True):
+        system_crisp_out = system_membershipf(crisp)
+        result_fuzzy_area += system_crisp_out
+        result_fuzzy_weighted_area += system_crisp_out * crisp
+    if result_fuzzy_area == 0:
+        return 0
+    return result_fuzzy_weighted_area / result_fuzzy_area
+
+
+def maxima_mean_defuzzifier(system_membershipf, support_min=-40, support_max=40):
+    support_range = support_max - support_min
+    support_space = np.linspace(support_min, support_max, support_range * 10, True)
+    system_crisp_outs = [system_membershipf(c) for c in support_space]
+    max_crisp_out = max(system_crisp_outs)
+    max_crisp = [c for c in support_space if system_membershipf(
+        c) == max_crisp_out]
+    return sum(max_crisp) / len(max_crisp)
+
+
+def modified_maxima_mean_defuzzifier(system_membershipf, support_min=-40, support_max=40):
+    support_range = support_max - support_min
+    support_space = np.linspace(support_min, support_max, support_range * 10, True)
+    system_crisp_outs = [system_membershipf(c) for c in support_space]
+    return (support_space[system_crisp_outs.index(max(system_crisp_outs))]
+            - support_space[system_crisp_outs.index(min(system_crisp_outs))]) / 2
 
 
 def get_gaussianf(mean, sig, ascending, descending):
