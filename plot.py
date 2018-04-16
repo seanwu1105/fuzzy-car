@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import QSizePolicy
 class CarPlot(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
 
+    car_radius = 3
+
     def __init__(self):
         fig = Figure(figsize=(5, 5), dpi=100)
         self.axes = fig.add_subplot(111, aspect='equal')
@@ -27,6 +29,7 @@ class CarPlot(FigureCanvas):
         self.__car = None
         self.__direction = None
         self.__dists = []
+        self.__paths = []
 
     def paint_map(self, data):
         self.axes.cla()
@@ -43,7 +46,8 @@ class CarPlot(FigureCanvas):
             self.__direction.remove()
         except (AttributeError, ValueError):
             pass
-        self.__car = Circle(pos, radius=3, color='dodgerblue')
+        self.__car = Circle(pos, radius=self.car_radius,
+                            color='dodgerblue', zorder=4)
         self.axes.add_artist(self.__car)
 
         arrow_len = 5
@@ -51,10 +55,9 @@ class CarPlot(FigureCanvas):
         self.__direction = self.axes.arrow(*pos,
                                            arrow_len * math.cos(angle),
                                            arrow_len * math.sin(angle),
-                                           head_width=2,
+                                           head_width=2, zorder=5,
                                            length_includes_head=True,
-                                           fc='seagreen',
-                                           ec='darkslategray')
+                                           fc='seagreen', ec='darkslategray')
         self.draw()
 
     def paint_car_collided(self):
@@ -73,4 +76,11 @@ class CarPlot(FigureCanvas):
                                color='grey') for i in intersections if i is not None]
         for dist in self.__dists:
             self.axes.add_line(dist)
+        self.draw()
+
+    def paint_path(self, xdata, ydata):
+        self.__paths = Line2D(xdata, ydata,
+                              lw=self.car_radius * 2, solid_capstyle='round',
+                              alpha=0.5, color='gold')
+        self.axes.add_line(self.__paths)
         self.draw()

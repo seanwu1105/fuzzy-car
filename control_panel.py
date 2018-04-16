@@ -233,7 +233,10 @@ class ControlFrame(QFrame):
 
     @pyqtSlot(list)
     def __get_results(self, results):
+        """Get the results of last running and draw the path of it."""
         self.results = results
+        self.display_panel.show_path([d['x'] for d in results],
+                                     [d['y'] for d in results])
 
     @pyqtSlot()
     def __save_results(self):

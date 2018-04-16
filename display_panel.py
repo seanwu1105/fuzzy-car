@@ -92,3 +92,6 @@ class DisplayFrame(QFrame):
     @pyqtSlot()
     def show_car_collided(self):
         self.simulator.paint_car_collided()
+
+    def show_path(self, xdata, ydata):
+        self.simulator.paint_path(xdata, ydata)
