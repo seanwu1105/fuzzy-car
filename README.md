@@ -45,6 +45,33 @@ The data location is `/data`. The application will load every files with `*.txt`
 
 Every coordinates between the fourth and last line are the corner point of the walls in map.
 
+## Save Data
+
+### `train4D.txt`
+
+``` python
+# Front_Distance Right_Distance Left_Distance Wheel_Angle
+
+22.0000000 8.4852814 8.4852814 -16.0709664
+21.1292288 9.3920089 7.7989045 -14.7971418
+20.3973643 24.4555821 7.2000902 16.2304876
+19.1995799 25.0357595 7.5129743 16.0825385
+18.1744869 42.5622911 8.0705896 15.5075777
+```
+
+### `train6D.txt`
+
+``` python
+# X Y Front_Distance Right_Distance Left_Distance Wheel_Angle
+
+0.0000000 0.0000000 22.0000000 8.4852814 8.4852814 -16.0709664
+0.0000000 0.9609196 21.1292288 9.3920089 7.7989045 -14.7971418
+-0.0892157 1.9236307 20.3973643 24.4555821 7.2000902 16.2304876
+-0.2588831 2.8686659 19.1995799 25.0357595 7.5129743 16.0825385
+-0.3398267 3.8261141 18.1744869 42.5622911 8.0705896 15.5075777
+-0.3319909 4.7896773 17.2922349 8.1967401 8.9258102 -14.6592172
+```
+
 ## Third-Party Packages
 
 * [numpy](http://www.numpy.org/)
