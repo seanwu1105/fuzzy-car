@@ -4,7 +4,6 @@ from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
 
 
 class RunCar(QThread):
-
     sig_console = pyqtSignal(str)
     sig_car = pyqtSignal(list, float, float)
     sig_car_collided = pyqtSignal()

@@ -79,7 +79,7 @@ class FuzzySystem(object):
                              "'self.antecedents': %d" % len(self.antecedents))
         for name, var in zip(antecedent_fuzzy_set_names, self.antecedents):
             if name not in var.fuzzy_sets.keys():
-                raise KeyError("Connot find '%s' in '%s'" %
+                raise KeyError("Cannot find '%s' in '%s'" %
                                (name, var.fuzzy_sets.keys()))
         self.rules[antecedent_fuzzy_set_names] = consequence_fuzzy_set_name
 
@@ -138,10 +138,10 @@ class FuzzySystem(object):
         # create the membership functions for each rule
         for antecedent_names, consequence_name in self.rules.items():
             antecedent_outs = []
-            # get the results from each antecedent's membership function with
+            # get the results from each membership function of antecedent with
             # crisp inputs
             for crisp, var, name in zip(inputs, self.antecedents, antecedent_names):
-                # save the results from each antecedent's membership function
+                # save the results from each membership function of antecedent
                 antecedent_outs.append(var.fuzzy_sets[name](crisp))
             # store the membership functions for each rule
             self.__rule_membershipfs.append(
