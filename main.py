@@ -1,6 +1,6 @@
 """ Author: Sean Wu 104502551 NCU CSIE 3B
 
-An assignment of Neural Network in NCU, Taiwan
+An assignment of Computational Intelligence in NCU, Taiwan
 to implement the very simple fuzzy system with a car simulation.
 
 This file is the entry point of whole project.
