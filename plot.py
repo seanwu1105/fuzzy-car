@@ -1,11 +1,14 @@
 import math
 
+import matplotlib.style
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, Rectangle
 
 from PyQt5.QtWidgets import QSizePolicy
+
+matplotlib.style.use('seaborn')
 
 
 class CarPlot(FigureCanvas):
@@ -14,13 +17,13 @@ class CarPlot(FigureCanvas):
     car_radius = 3
 
     def __init__(self):
-        fig = Figure(figsize=(5, 5), dpi=100)
+        fig = Figure(figsize=(3, 3), dpi=100)
         self.axes = fig.add_subplot(111, aspect='equal')
 
         super().__init__(fig)
 
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(500)
+        self.setMinimumWidth(400)
+        self.setMinimumHeight(400)
         FigureCanvas.setSizePolicy(self,
                                    QSizePolicy.Expanding,
                                    QSizePolicy.Expanding)
