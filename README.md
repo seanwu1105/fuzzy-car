@@ -14,7 +14,11 @@ git clone https://gitlab.com/GLaDOS1105/fuzzy-car.git
 
 2. Change directory to the root of the project
 
-3. Running with Python interpreter
+```
+cd fuzzy-car/
+```
+
+3. Run with Python interpreter
 
 ```
 python3 main.py
