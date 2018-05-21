@@ -76,7 +76,7 @@ Every coordinates between the fourth and last line are the corner point of the w
 -0.3319909 4.7896773 17.2922349 8.1967401 8.9258102 -14.6592172
 ```
 
-## Third-Party Packages
+## Dependencies
 
 * [numpy](http://www.numpy.org/)
 
