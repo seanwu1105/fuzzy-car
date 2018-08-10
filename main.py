@@ -15,7 +15,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-import gui_base
+from fuzzy_car.gui import gui_base
 
 
 def main():

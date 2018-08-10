@@ -12,12 +12,13 @@ from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                              QStackedWidget, QTableWidget, QTableWidgetItem,
                              QHeaderView, QSpinBox, QFileDialog)
 
-from display_panel import DisplayFrame
-from fuzzier_viewer import FuzzierViewer
-from fuzzy_system import FuzzySystem, FuzzyVariable, get_gaussianf
-from car import Car
-from run import RunCar
-import src  # for pyinstaller to import the icons automatically
+from fuzzy_car.gui.display_panel import DisplayFrame
+from fuzzy_car.gui.fuzzier_viewer import FuzzierViewer
+from fuzzy_car.backend.fuzzy_system import (FuzzySystem, FuzzyVariable,
+                                            get_gaussianf)
+from fuzzy_car.backend.car import Car
+from fuzzy_car.backend.run import RunCar
+import fuzzy_car.gui.src  # for pyinstaller to import the icons automatically
 
 
 class ControlFrame(QFrame):

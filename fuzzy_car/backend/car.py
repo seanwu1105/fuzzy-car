@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 
-from planecoord import Line2D, LineSeg2D
+from fuzzy_car.backend.planecoord import Line2D, LineSeg2D
 
 np.set_printoptions(suppress=True)
 

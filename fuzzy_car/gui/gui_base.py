@@ -5,8 +5,8 @@ Define the GUI: main window.
 
 from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 
-from control_panel import ControlFrame
-from display_panel import DisplayFrame
+from fuzzy_car.gui.control_panel import ControlFrame
+from fuzzy_car.gui.display_panel import DisplayFrame
 
 class GUIBase(QMainWindow):
     """ The base of GUI, containing the status bar and menu. """
