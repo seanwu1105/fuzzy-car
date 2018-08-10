@@ -3,10 +3,10 @@
 import math
 
 import numpy as np
-from PyQt5.QtCore import QPointF, QMargins
-from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QFrame, QHBoxLayout
-from PyQt5.QtChart import QChart, QChartView, QLineSeries
+from PySide2.QtCore import QPointF, QMargins
+from PySide2.QtGui import QPainter
+from PySide2.QtWidgets import QFrame, QHBoxLayout
+from PySide2.QtCharts import QtCharts
 
 
 class FuzzierViewer(QFrame):
@@ -17,14 +17,14 @@ class FuzzierViewer(QFrame):
         self.setLayout(layout)
         self.setStatusTip("Display the fuzziers in plot.")
 
-        self.chart = QChart()
+        self.chart = QtCharts.QChart()
         self.chart.legend().hide()
         self.chart.createDefaultAxes()
         self.chart.layout().setContentsMargins(0, 0, 0, 0)
         self.chart.setMargins(QMargins())
         self.chart.setBackgroundRoundness(2)
 
-        chart_view = QChartView(self.chart)
+        chart_view = QtCharts.QChartView(self.chart)
         chart_view.setRenderHint(QPainter.Antialiasing)
 
         layout.addWidget(chart_view)
@@ -33,7 +33,7 @@ class FuzzierViewer(QFrame):
     def add_curves(self, means, sds, ascendings, descendings):
         self.__xmax = max(means) + 2 * sds[means.index(max(means))]
         self.__xmin = min(means) - 2 * sds[means.index(min(means))]
-        series_list = [QLineSeries() for _ in range(len(means))]
+        series_list = [QtCharts.QLineSeries() for _ in range(len(means))]
         for idx, param in enumerate(zip(means, sds, ascendings, descendings)):
             series_list[idx].append(self.__generate_curve(*param))
             self.chart.addSeries(series_list[idx])

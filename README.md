@@ -2,25 +2,25 @@
 
 A sandbox practice for the fuzzy system.
 
-<img src="preview.gif">
+![preview](https://i.imgur.com/C8xARC6.gif)
 
 ## Installation
 
-1. Download this project
+Download this project
 
-```
+``` bash
 git clone https://gitlab.com/GLaDOS1105/fuzzy-car.git
 ```
 
-2. Change directory to the root of the project
+Change directory to the root of the project
 
-```
+``` bash
 cd fuzzy-car/
 ```
 
-3. Run with Python interpreter
+Run with Python interpreter
 
-```
+``` bash
 python3 main.py
 ```
 
@@ -32,11 +32,11 @@ The data location is `/data`. The application will load every files with `*.txt`
 
 ### Example Format
 
-```
-0,0,90  // the starting position and angle of car (x, y, degree)
-18,40   // the top-left coordinate of the ending area
-30,37   // the bottom-right coordinate of the ending area
--6,-3   // the first point for the wall in map
+``` python
+0,0,90  # the starting position and angle of car (x, y, degree)
+18,40   # the top-left coordinate of the ending area
+30,37   # the bottom-right coordinate of the ending area
+-6,-3   # the first point for the wall in map
 -6,22
 18,22
 18,50
@@ -44,7 +44,7 @@ The data location is `/data`. The application will load every files with `*.txt`
 30,10
 6,10
 6,-6
--6,-3   // the last point for the wall in map
+-6,-3   # the last point for the wall in map
 ```
 
 Every coordinates between the fourth and last line are the corner point of the walls in map.
@@ -80,24 +80,18 @@ Every coordinates between the fourth and last line are the corner point of the w
 
 * [numpy](http://www.numpy.org/)
 
-```
+``` bash
 pip3 install numpy
 ```
 
 * [matplotlib](https://matplotlib.org/)
 
-```
+``` bash
 pip3 install matplotlib
 ```
 
-* [PyQt5](https://riverbankcomputing.com/software/pyqt/intro)
+* [PySide2](http://wiki.qt.io/Qt_for_Python)
 
-```
+``` bash
 pip3 install pyqt5
-```
-
-* [PyQtChart5](https://www.riverbankcomputing.com/software/pyqtchart/intro)
-
-```
-pip3 install PyQtChart
 ```

@@ -3,27 +3,41 @@
 Define the GUI: main window.
 """
 
-from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout
+from PySide2.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 
 from fuzzy_car.gui.control_panel import ControlFrame
 from fuzzy_car.gui.display_panel import DisplayFrame
+
 
 class GUIBase(QMainWindow):
     """ The base of GUI, containing the status bar and menu. """
 
     def __init__(self, dataset):
         super().__init__()
-        self.setWindowTitle("IT'S SO FUZZY")
+        self.setWindowTitle("It is So Fuzzy")
         self.statusBar()
-        self.setCentralWidget(BaseWidget(dataset))
+
+        # a container for threads created in GUI classes.
+        # For more details:
+        # https://stackoverflow.com/questions/28714630/qthread-destroyed-while-thread-is-still-running-on-quit
+        self.threads = []
+
+        self.setCentralWidget(BaseWidget(dataset, self.threads))
+
+    def closeEvent(self, _):
+        """ Stop the new created threads and wait till them terminate. """
+        for thread in self.threads:
+            thread.stop()
+            thread.wait()
+
 
 class BaseWidget(QWidget):
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, threads):
         super().__init__()
         layout = QHBoxLayout()
         disp_panel = DisplayFrame()
-        ctrl_panel = ControlFrame(dataset, disp_panel)
+        ctrl_panel = ControlFrame(dataset, disp_panel, threads)
         layout.addWidget(ctrl_panel)
         layout.addWidget(disp_panel)
 

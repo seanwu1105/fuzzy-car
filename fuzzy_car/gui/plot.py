@@ -6,7 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.patches import Circle, Rectangle
 
-from PyQt5.QtWidgets import QSizePolicy
+from PySide2.QtWidgets import QSizePolicy
 
 matplotlib.style.use('seaborn')
 

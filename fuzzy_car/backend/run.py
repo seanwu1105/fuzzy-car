@@ -1,14 +1,14 @@
 import time
 
-from PyQt5.QtCore import QThread, pyqtSignal, pyqtSlot
+from PySide2.QtCore import QThread, Signal, Slot
 
 
 class RunCar(QThread):
-    sig_console = pyqtSignal(str)
-    sig_car = pyqtSignal(list, float, float)
-    sig_car_collided = pyqtSignal()
-    sig_dists = pyqtSignal(list, list, list)
-    sig_results = pyqtSignal(list)
+    sig_console = Signal(str)
+    sig_car = Signal(list, float, float)
+    sig_car_collided = Signal()
+    sig_dists = Signal(list, list, list)
+    sig_results = Signal(list)
 
     def __init__(self, car, fuzzy_system, ending_area=None, fps=20):
         super().__init__()
@@ -19,7 +19,7 @@ class RunCar(QThread):
         self.ending_rb = ending_area[1]
         self.waiting_time = 1 / fps
 
-    @pyqtSlot()
+    @Slot()
     def run(self):
         results = list()
         radar_dir = ['front', 'left', 'right']
@@ -69,7 +69,7 @@ class RunCar(QThread):
             self.car.move(next_wheel_angle)
         self.sig_results.emit(results)
 
-    @pyqtSlot()
+    @Slot()
     def stop(self):
         if self.isRunning():
             self.sig_console.emit("WARNING: User interrupts running thread.")

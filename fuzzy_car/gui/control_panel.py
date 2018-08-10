@@ -4,13 +4,14 @@ import collections
 import itertools
 import os
 
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
-                             QComboBox, QDoubleSpinBox, QGroupBox, QPushButton,
-                             QLabel, QRadioButton, QTextEdit, QCheckBox,
-                             QStackedWidget, QTableWidget, QTableWidgetItem,
-                             QHeaderView, QSpinBox, QFileDialog)
+from PySide2.QtCore import Qt, Slot, Signal
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
+                               QComboBox, QDoubleSpinBox, QGroupBox,
+                               QPushButton, QLabel, QRadioButton, QTextEdit,
+                               QCheckBox, QStackedWidget, QTableWidget,
+                               QTableWidgetItem, QHeaderView, QSpinBox,
+                               QFileDialog)
 
 from fuzzy_car.gui.display_panel import DisplayFrame
 from fuzzy_car.gui.fuzzier_viewer import FuzzierViewer
@@ -23,7 +24,7 @@ import fuzzy_car.gui.src  # for pyinstaller to import the icons automatically
 
 class ControlFrame(QFrame):
 
-    def __init__(self, dataset, display_panel):
+    def __init__(self, dataset, display_panel, threads):
         super().__init__()
         if isinstance(display_panel, DisplayFrame):
             self.display_panel = display_panel
@@ -31,6 +32,7 @@ class ControlFrame(QFrame):
             raise TypeError("'display_panel' must be the instance of "
                             "'DisplayFrame'")
         self.dataset = dataset
+        self.threads = threads
 
         self.__layout = QVBoxLayout()
         self.setLayout(self.__layout)
@@ -48,7 +50,7 @@ class ControlFrame(QFrame):
         group_box.setLayout(inner_layout)
 
         self.data_selector = QComboBox()
-        self.data_selector.addItems(self.dataset.keys())
+        self.data_selector.addItems(list(self.dataset.keys()))
         self.data_selector.setStatusTip("Select the road map case.")
         self.data_selector.currentIndexChanged.connect(self.__change_map)
 
@@ -211,7 +213,7 @@ class ControlFrame(QFrame):
         self.__console.setStatusTip("Show the logs of status changing.")
         self.__layout.addWidget(self.__console)
 
-    @pyqtSlot(str)
+    @Slot(str)
     def __change_fuzzyvar_setting_ui_stack(self, name):
         if name == 'front':
             self.fuzzyvar_setting_stack.setCurrentIndex(0)
@@ -220,7 +222,7 @@ class ControlFrame(QFrame):
         else:
             self.fuzzyvar_setting_stack.setCurrentIndex(2)
 
-    @pyqtSlot()
+    @Slot()
     def __change_map(self):
         self.__current_data = self.dataset[self.data_selector.currentText()]
         self.__car = Car(self.__current_data['start_pos'],
@@ -228,18 +230,18 @@ class ControlFrame(QFrame):
                          3, self.__current_data['route_edge'])
         self.display_panel.change_map(self.__current_data)
 
-    @pyqtSlot(str)
+    @Slot(str)
     def __print_console(self, text):
         self.__console.append(text)
 
-    @pyqtSlot(list)
+    @Slot(list)
     def __get_results(self, results):
         """Get the results of last running and draw the path of it."""
         self.results = results
         self.display_panel.show_path([d['x'] for d in results],
                                      [d['y'] for d in results])
 
-    @pyqtSlot()
+    @Slot()
     def __save_results(self):
         save_dir = QFileDialog.getExistingDirectory(self,
                                                     'Select Saving Directory')
@@ -261,7 +263,7 @@ class ControlFrame(QFrame):
         self.__print_console('Note: Detailed results have been saved in both'
                              ' "%s" and "%s".' % (file4d_filepath, file6d_filepath))
 
-    @pyqtSlot()
+    @Slot()
     def __init_widgets(self):
         self.start_btn.setDisabled(True)
         self.stop_btn.setEnabled(True)
@@ -277,7 +279,7 @@ class ControlFrame(QFrame):
         self.fuzzyvar_setting_consequence.setDisabled(True)
         self.rules_setting.setDisabled(True)
 
-    @pyqtSlot()
+    @Slot()
     def __reset_widgets(self):
         self.start_btn.setEnabled(True)
         self.stop_btn.setDisabled(True)
@@ -293,26 +295,30 @@ class ControlFrame(QFrame):
         self.fuzzyvar_setting_consequence.setEnabled(True)
         self.rules_setting.setEnabled(True)
 
-    @pyqtSlot()
+    @Slot()
     def __run(self):
         # reset the map
         self.__change_map()
         # create a QThread
-        self.__thread = RunCar(self.__car,
-                               self.__create_fuzzy_system(),
-                               (self.__current_data['end_area_lt'],
-                                self.__current_data['end_area_rb']),
-                               self.fps.value())
-        self.stop_btn.clicked.connect(self.__thread.stop)
-        self.__thread.started.connect(self.__init_widgets)
-        self.__thread.finished.connect(self.__reset_widgets)
-        self.__thread.sig_console.connect(self.__print_console)
-        self.__thread.sig_car.connect(self.display_panel.move_car)
-        self.__thread.sig_car_collided.connect(
+        self.thread = RunCar(self.__car,
+                             self.__create_fuzzy_system(),
+                             (self.__current_data['end_area_lt'],
+                              self.__current_data['end_area_rb']),
+                             self.fps.value())
+        # Record the new created threads for the closeEvent in gui_base.py
+        # By doing this, user can destroy the QMainWindow elegantly when there
+        # are threads still running.
+        self.threads.append(self.thread)
+        self.stop_btn.clicked.connect(self.thread.stop)
+        self.thread.started.connect(self.__init_widgets)
+        self.thread.finished.connect(self.__reset_widgets)
+        self.thread.sig_console.connect(self.__print_console)
+        self.thread.sig_car.connect(self.display_panel.move_car)
+        self.thread.sig_car_collided.connect(
             self.display_panel.show_car_collided)
-        self.__thread.sig_dists.connect(self.display_panel.show_dists)
-        self.__thread.sig_results.connect(self.__get_results)
-        self.__thread.start()
+        self.thread.sig_dists.connect(self.display_panel.show_dists)
+        self.thread.sig_results.connect(self.__get_results)
+        self.thread.start()
 
     def __create_fuzzy_system(self):
         """Create a fuzzy system with the parameter given in control panel."""
@@ -361,7 +367,7 @@ class RadioButtonSet(QFrame):
             QRadioButton. Use OrderedDict if you want to keep the set in order.
     """
 
-    sig_rbtn_changed = pyqtSignal(str)
+    sig_rbtn_changed = Signal(str)
 
     def __init__(self, named_radiobtns):
         super().__init__()
@@ -374,7 +380,7 @@ class RadioButtonSet(QFrame):
             radiobtn.toggled.connect(self.get_selected_name)
             layout.addWidget(radiobtn)
 
-    @pyqtSlot()
+    @Slot()
     def get_selected_name(self):
         """Get which radio button is selected."""
         for name, btn in self.named_radiobtns.items():
@@ -429,7 +435,7 @@ class FuzzierVarSetting(QFrame):
         self.medium.setEnabled(boolean)
         self.large.setEnabled(boolean)
 
-    @pyqtSlot()
+    @Slot()
     def update_viewer(self):
         means = [self.small.mean.value(),
                  self.medium.mean.value(),

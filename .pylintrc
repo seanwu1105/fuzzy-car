@@ -1,2 +1,2 @@
 [MASTER]
-extension-pkg-whitelist=numpy, PyQt5
+extension-pkg-whitelist=numpy, PySide2

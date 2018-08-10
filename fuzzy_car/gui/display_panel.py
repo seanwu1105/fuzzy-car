@@ -1,8 +1,8 @@
 """ Define the contents of graphic panel. """
 
 
-from PyQt5.QtCore import Qt, pyqtSlot
-from PyQt5.QtWidgets import QFormLayout, QVBoxLayout, QGroupBox, QFrame, QLabel
+from PySide2.QtCore import Qt, Slot
+from PySide2.QtWidgets import QFormLayout, QVBoxLayout, QGroupBox, QFrame, QLabel
 
 from fuzzy_car.gui.plot import CarPlot
 
@@ -63,20 +63,20 @@ class DisplayFrame(QFrame):
         inner_layout.addRow(
             QLabel("(Left - Right) Distance:"), self.dist_lrdiff)
 
-    @pyqtSlot(dict)
+    @Slot(dict)
     def change_map(self, data):
         self.simulator.paint_map(data)
         self.move_car(data['start_pos'], data['start_angle'])
         self.show_dists(data['start_pos'], [data['start_pos']] * 3, ['--'] * 3)
 
-    @pyqtSlot(list, float, float)
+    @Slot(list, float, float)
     def move_car(self, pos, angle, wheel_angle=0.0):
         self.simulator.paint_car(pos, angle)
         self.car_position.setText("({:.7f}, {:.7f})".format(*pos))
         self.car_angle.setText(str(angle))
         self.wheel_angle.setText(str(wheel_angle))
 
-    @pyqtSlot(list, list, list)
+    @Slot(list, list, list)
     def show_dists(self, pos, intersections, dists):
         self.simulator.paint_dist(pos, intersections)
         self.dist_front.setText(str(dists[0]))
@@ -89,7 +89,7 @@ class DisplayFrame(QFrame):
         else:
             self.dist_lrdiff.setText(str(lrdiff))
 
-    @pyqtSlot()
+    @Slot()
     def show_car_collided(self):
         self.simulator.paint_car_collided()
 
