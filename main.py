@@ -13,7 +13,7 @@ import collections
 import pathlib
 import sys
 
-from PyQt5.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication
 
 from fuzzy_car.gui import gui_base
 
