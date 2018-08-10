@@ -93,5 +93,5 @@ pip3 install matplotlib
 * [PySide2](http://wiki.qt.io/Qt_for_Python)
 
 ``` bash
-pip3 install pyqt5
+pip3 install pyside2
 ```
