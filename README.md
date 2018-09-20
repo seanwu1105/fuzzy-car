@@ -97,3 +97,7 @@ pip3 install matplotlib
 ``` bash
 pip3 install pyside2
 ```
+
+## Further Details
+
+https://is.gd/RmH2J3
