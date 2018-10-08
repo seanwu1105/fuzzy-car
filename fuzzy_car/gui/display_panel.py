@@ -4,7 +4,7 @@
 from PySide2.QtCore import Qt, Slot
 from PySide2.QtWidgets import QFormLayout, QVBoxLayout, QGroupBox, QFrame, QLabel
 
-from fuzzy_car.gui.plot import CarPlot
+from .plot import CarPlot
 
 
 class DisplayFrame(QFrame):

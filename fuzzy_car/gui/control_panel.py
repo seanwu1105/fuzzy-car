@@ -13,13 +13,13 @@ from PySide2.QtWidgets import (QFrame, QHBoxLayout, QVBoxLayout, QFormLayout,
                                QTableWidgetItem, QHeaderView, QSpinBox,
                                QFileDialog)
 
-from fuzzy_car.gui.display_panel import DisplayFrame
-from fuzzy_car.gui.fuzzier_viewer import FuzzierViewer
-from fuzzy_car.backend.fuzzy_system import (FuzzySystem, FuzzyVariable,
+from .display_panel import DisplayFrame
+from .fuzzier_viewer import FuzzierViewer
+from ..backend.fuzzy_system import (FuzzySystem, FuzzyVariable,
                                             get_gaussianf)
-from fuzzy_car.backend.car import Car
-from fuzzy_car.backend.run import RunCar
-import fuzzy_car.gui.src  # for pyinstaller to import the icons automatically
+from ..backend.car import Car
+from ..backend.run import RunCar
+from . import src  # for pyinstaller to import the icons automatically
 
 
 class ControlFrame(QFrame):
