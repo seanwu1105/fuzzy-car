@@ -1,6 +1,6 @@
 # Fuzzy Car Simulator
 
-[![Requirements Status](https://requires.io/github/GLaDOS1105/fuzzy-car/requirements.svg?branch=develop)](https://requires.io/github/GLaDOS1105/fuzzy-car/requirements/?branch=develop)
+[![Requirements Status](https://requires.io/github/seanwu1105/fuzzy-car/requirements.svg?branch=develop)](https://requires.io/github/seanwu1105/fuzzy-car/requirements/?branch=develop)
 
 A sandbox practice for the fuzzy system.
 
@@ -11,7 +11,7 @@ A sandbox practice for the fuzzy system.
 Download this project
 
 ``` bash
-git clone https://gitlab.com/GLaDOS1105/fuzzy-car.git
+git clone https://gitlab.com/seanwu1105/fuzzy-car.git
 ```
 
 Change directory to the root of the project
