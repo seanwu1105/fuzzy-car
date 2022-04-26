@@ -1,7 +1,5 @@
 # Fuzzy Car Simulator
 
-[![Requirements Status](https://requires.io/github/seanwu1105/fuzzy-car/requirements.svg?branch=develop)](https://requires.io/github/seanwu1105/fuzzy-car/requirements/?branch=develop)
-
 A sandbox practice for the fuzzy system.
 
 ![preview](https://i.imgur.com/C8xARC6.gif)
